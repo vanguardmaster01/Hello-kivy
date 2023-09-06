@@ -1,0 +1,153 @@
+WindowManager:
+    ListScreen:
+    ItemScreen:
+
+<ListScreen>:
+    name: 'List'
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1  # Set the color to red (RGBA format)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+        BorderImage:
+            size: self.size
+            pos: self.pos
+            source: ''
+            border: 10, 10, 10, 10  
+            Color:
+                rgba: 1, 0, 0, 1  # Set the color to red (RGBA format)
+
+    GridLayout:
+        rows: 3
+        BoxLayout:
+            padding: 10, 10, 10, 10
+            size_hint: (1, 0.3)
+            Image:
+                source: './img/top.png'
+                size: self.texture_size
+
+        GridLayout:
+            cols: 2
+            rows: 2
+            spacing: 30
+            padding: 10
+            Image:
+                source: './img/1-1.png'
+                size: self.texture_size
+                on_touch_down: root.select_item()
+            Image:
+                source: './img/1-2.png'
+                size: self.texture_size
+            Image:
+                source: './img/2-1.png'
+                size: self.texture_size
+            Image:
+                source: './img/2-2.png'
+                size: self.texture_size
+
+        BoxLayout:
+            padding: 10, 10, 10, 10
+            size_hint: (1, 0.3)
+            RelativeLayout:
+                Image:
+                    source: './img/bottom.png'
+                    size: self.texture_size
+
+<ItemScreen>:
+    name: 'Item'
+
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1  # Set the color to red (RGBA format)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+    GridLayout:
+        rows: 3
+        GridLayout:
+            cols: 2
+            spacing: 10
+            BoxLayout:
+                padding: 10
+                RelativeLayout:
+                    Image:
+                        source: './img/1-1.png'
+                        size: self.texture_size
+            GridLayout:
+                rows: 2
+                GridLayout:
+                    padding: 10, 50, 10, 10
+                    cols: 2
+                    spacing: 5
+                    GridLayout:
+                        rows: 5
+                        spacing: 5
+                        Label:
+                            text: 'Art.Nr:'
+                            color: (0,0,0,1)
+                        Label:
+                            text: 'Züge:'
+                            color: (0,0,0,1)
+                        Label:
+                            text: 'Nikotin:'
+                            color: (0,0,0,1)
+                        Label:
+                            text: 'Akku:'
+                            color: (0,0,0,1)
+                        Label:
+                            text: 'Tankvol.:'
+                            color: (0,0,0,1)
+                    GridLayout:
+                        rows: 5
+                        spacing: 5
+                        Label: 
+                            text: 'ABC1234'
+                            color: (0,0,0,1)
+                        Label: 
+                            text: '600'
+                            color: (0,0,0,1)
+                        Label: 
+                            text: '20mg'
+                            color: (0,0,0,1)
+                        Label: 
+                            text: '400mAh'
+                            color: (0,0,0,1)
+                        Label: 
+                            text: '2ml'
+                            color: (0,0,0,1)
+                GridLayout:
+                    cols: 3
+                    spacing: 5
+                    Image:
+                        source: './img/left.png'
+                        size: self.texture_size
+                    Label:
+                        text: '10.00 EUR'
+                        color: (0,0,0,1)
+                    Image:
+                        source: './img/right.png'
+                        size: self.texture_size
+       
+        GridLayout:
+            cols: 2
+            spacing: 20
+            padding: 10, 20, 10, 20
+            size_hint: (1, 0.3)
+            Button:
+                text: '20.00 Eur'
+                color: (0,0,0,1)
+                background_normal: './img/bg-btn-1.png'
+                background_color: (1,1,1,0.5)
+            Button:
+                text: 'Buy'
+                background_color: (0,0,1,1)
+                border_radius: [20]
+
+        BoxLayout:
+            size_hint:(1, 1)
+            RelativeLayout:
+
+

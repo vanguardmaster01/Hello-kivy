@@ -6,13 +6,18 @@ from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.floatlayout import FloatLayout
+from kivy.core.image import Image as CoreImage
 from kivy.clock import Clock
-from kivy.graphics.texture import Texture
+# from kivy.graphics.texture import Texture
 from kivy.properties import StringProperty
+from PIL import Image as PILImage
+import io
 
 from DbFuncs import db
 from DbFuncs import db_create
 from model.Product import Product
+
+from config import utils
 
 dbFlag = False
 
@@ -52,15 +57,29 @@ class ListScreen(Screen):
     
     # draw one image
     def on_draw_item(self, product):
-        image = Image()
-        image.size = (100, 100)
+        # image = Image()
+        # image.size = (100, 100)
+
         # image.allow_stretch = True
         # image.keep_ratio = False
         # image.source = 'D:\Workspace\Python\Kivy\Hello-kivy\img/1-1.png'
-        texture = Texture.create(size=(image.width, image.height))
-        texture.blit_buffer(product[2], colorfmt='rgba', bufferfmt='ubyte')
-        image.texture = texture
-        image.color = [1,0,0,1]
+
+        # texture = Texture.create(size=(image.width, image.height))
+        # texture.blit_buffer(product[2], colorfmt='rgba', bufferfmt='ubyte')
+        # image.texture = texture
+        
+        # pil_image = PILImage.open(io.BytesIO(product[2]))
+        # texture = pil_image.tobytes()
+
+        # image_stream = BytesIO(product[2])
+        # loader = ImageLoader()
+        # texture = loader.load(image_stream.getvalue(), ext="png")
+
+        image = Image()
+        image_stream = io.BytesIO(product[2])
+        img = CoreImage(image_stream, ext='png')
+        image.texture = img.texture
+
         image.bind(on_touch_down=self.on_image_click)
 
         return image
@@ -111,7 +130,7 @@ class MainApp(App):
             for name in names:
                 image = path + "/" + name
                 data = Product('111', image, 10, 100)
-                db.insertProduct(data)
+                db.insert_product(data)
     
 
 

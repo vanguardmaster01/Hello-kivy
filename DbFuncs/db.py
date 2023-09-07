@@ -1,35 +1,28 @@
 import sqlite3
 import datetime
+from config import utils
 
-import os
-import sys
+# import os
+# import sys
 
-script_dir = os.path.dirname( __file__ )
-constants_dir = os.path.join( script_dir, '..', 'config' )
-sys.path.append(constants_dir)
-import constants
+# script_dir = os.path.dirname( __file__ )
+# urils_dir = os.path.join( script_dir, '..', 'config' )
+# sys.path.append(urils_dir)
+# import utils
 
 from model.Product import Product
 
-
-# convert image to blob data
-def convert_to_blod_data(filename):
-    with open(filename, 'rb') as file:
-        blobData = file.read()
-    return blobData
-
-	
 # insert into product table
 def insert_product(product):
 	try:
-		conn = sqlite3.connect(constants.dbPath)
+		conn = sqlite3.connect(utils.dbPath)
 		cursor = conn.cursor()
 
 		insert_query = """insert into products (name, image, count, price, modifiedAt)
 							values (?, ?, ?, ?, ?)"""
 
-		imageBlob = convert_to_blod_data(product.image)
-		data = (product.name, imageBlob, product.count, product.price, datetime.datetime.now())
+		imageBlob = utils.convert_to_blod_data(product.image)
+		data = (product.name, (imageBlob), product.count, product.price, datetime.datetime.now())
 		
 		cursor.execute(insert_query, data)
 		
@@ -51,7 +44,7 @@ def insert_product(product):
 # update product item
 def update_product(id, count):
 	try:
-		conn = sqlite3.connect(constants.dbPath)
+		conn = sqlite3.connect(utils.dbPath)
 		cursor = conn.cursor()
 
 		update_query = '''update products set count = ? where id = ?'''
@@ -71,7 +64,7 @@ def update_product(id, count):
 # get all products
 def get_products():
 	try:
-		conn = sqlite3.connect(constants.dbPath)
+		conn = sqlite3.connect(utils.dbPath)
 		cursor = conn.cursor()
 
 		select_query = '''select id, name, image, count, price from products'''
@@ -94,7 +87,7 @@ def get_products():
 # get product
 def get_product(id):
 	try:
-		conn = sqlite3.connect(constants.dbPath)
+		conn = sqlite3.connect(utils.dbPath)
 		cursor = conn.cursor()
 
 		print(f'id: {id}')

@@ -5,15 +5,15 @@ import os
 import sys
 
 script_dir = os.path.dirname( __file__ )
-constants_dir = os.path.join( script_dir, '..', 'config' )
-sys.path.append(constants_dir)
-import constants
+utils_dir = os.path.join( script_dir, '..', 'config' )
+sys.path.append(utils_dir)
+import utils
 
 
 # create product table
 def create_table_if_not_exists():
 	try:
-		conn = sqlite3.connect(constants.dbPath)
+		conn = sqlite3.connect(utils.dbPath)
 		cursor = conn.cursor()
 
 		create_product_table_query = '''CREATE TABLE IF NOT EXISTS products (
@@ -41,7 +41,7 @@ def create_table_if_not_exists():
 def insertData(name, avatar, modifiedAt):
 	try:
 		# Connect to the database (create a new file if it doesn't exist)
-		conn = sqlite3.connect(constants.dbPath)
+		conn = sqlite3.connect(utils.dbPath)
 
 		# Create a cursor object to execute SQL commands
 		cursor = conn.cursor()

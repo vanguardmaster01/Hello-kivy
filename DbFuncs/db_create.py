@@ -11,7 +11,7 @@ import constants
 
 
 # create product table
-def createDb():
+def create_table_if_not_exists():
 	try:
 		conn = sqlite3.connect(constants.dbPath)
 		cursor = conn.cursor()

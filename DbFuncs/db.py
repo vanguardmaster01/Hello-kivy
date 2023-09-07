@@ -13,14 +13,14 @@ from model.Product import Product
 
 
 # convert image to blob data
-def convertToBlobData(filename):
+def convert_to_blod_data(filename):
     with open(filename, 'rb') as file:
         blobData = file.read()
     return blobData
 
 	
 # insert into product table
-def insertProduct(product):
+def insert_product(product):
 	try:
 		conn = sqlite3.connect(constants.dbPath)
 		cursor = conn.cursor()
@@ -28,7 +28,7 @@ def insertProduct(product):
 		insert_query = """insert into products (name, image, count, price, modifiedAt)
 							values (?, ?, ?, ?, ?)"""
 
-		imageBlob = convertToBlobData(product.image)
+		imageBlob = convert_to_blod_data(product.image)
 		data = (product.name, imageBlob, product.count, product.price, datetime.datetime.now())
 		
 		cursor.execute(insert_query, data)
@@ -49,7 +49,7 @@ def insertProduct(product):
 		return False
 
 # update product item
-def updateProduct(id, count):
+def update_product(id, count):
 	try:
 		conn = sqlite3.connect(constants.dbPath)
 		cursor = conn.cursor()
@@ -69,12 +69,12 @@ def updateProduct(id, count):
 			print('connection is closed')
 
 # get all products
-def getProducts():
+def get_products():
 	try:
 		conn = sqlite3.connect(constants.dbPath)
 		cursor = conn.cursor()
 
-		select_query = '''select id, name, count from products'''
+		select_query = '''select id, name, image, count, price from products'''
 		cursor.execute(select_query)
 		records = cursor.fetchall()
 		
@@ -90,3 +90,27 @@ def getProducts():
 			print('connection is closed')
 
 	return records
+
+# get product
+def get_product(id):
+	try:
+		conn = sqlite3.connect(constants.dbPath)
+		cursor = conn.cursor()
+
+		print(f'id: {id}')
+		select_query = '''select id, name, count, price from products where id = ?'''
+		cursor.execute(select_query, (id,))
+		record = cursor.fetchone()
+		
+		conn.commit()
+		cursor.close()
+
+	except sqlite3.Error as error:
+		print('fail', error)
+		record = None
+	finally:
+		if conn:
+			conn.close()
+			print('connection is closed')
+
+	return record

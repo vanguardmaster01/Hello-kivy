@@ -29,23 +29,9 @@ WindowManager:
                 size: self.texture_size
 
         GridLayout:
+            id: image_layout
             cols: 2
-            rows: 2
             spacing: 30
-            padding: 10
-            Image:
-                source: './img/1-1.png'
-                size: self.texture_size
-                on_touch_down: root.select_item()
-            Image:
-                source: './img/1-2.png'
-                size: self.texture_size
-            Image:
-                source: './img/2-1.png'
-                size: self.texture_size
-            Image:
-                source: './img/2-2.png'
-                size: self.texture_size
 
         BoxLayout:
             padding: 10, 10, 10, 10

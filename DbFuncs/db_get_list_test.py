@@ -12,12 +12,6 @@ import constants
 conn = sqlite3.connect(constants.dbPath)
 cursor = conn.cursor()
 
-# Get All Users
-get_all_users_query = '''select id, name, price from products'''
-cursor.execute(get_all_users_query)
-records = cursor.fetchall()
-
-print(records)
 
 cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
 
@@ -26,6 +20,14 @@ tables = cursor.fetchall()
 
 for table in tables:
     print(table[0])
+
+# Get All Products
+get_all_data_query = '''select id, name, price from products'''
+cursor.execute(get_all_data_query)
+records = cursor.fetchall()
+
+print(records)
+
 
 
 conn.commit()

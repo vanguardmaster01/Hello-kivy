@@ -1,0 +1,1 @@
+dbPath = './DbFuncs/sql.db'

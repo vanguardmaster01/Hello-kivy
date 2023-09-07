@@ -25,6 +25,7 @@ class ListScreen(Screen):
     def __init__(self, **kwargs):
         super(ListScreen, self).__init__(**kwargs)
         Clock.schedule_once(self.retrieve_image_layout)
+        self.imageList = []
 
     # prevent to delay, so we can get image_layou and draw dynamically
     def retrieve_image_layout(self, dt):
@@ -35,6 +36,7 @@ class ListScreen(Screen):
         if products:
             for product in products:
                 image = self.on_draw_item(product)
+                self.imageList.append(image)
                 image_layout.add_widget(image)
         else:
             image_layout.add_widget(Label(text='Image not found'))
@@ -50,35 +52,19 @@ class ListScreen(Screen):
     
     # click image, then navigate to itemscreen with item id
     def on_image_click(self, instance, touch):
-        if instance.collide_point(*touch.pos):
-            print("Image Clicked!")  # You can perform any action you want here
-            # self.manager.current = 'Item'
-            self.manager.get_screen("Item").set_item_id(1)
+        for image in self.imageList:
+            if image.collide_point(*touch.pos):
+                # self.manager.current = 'Item'
+                self.manager.get_screen("Item").set_item_id(image.name)
+
     
     # draw one image
     def on_draw_item(self, product):
-        # image = Image()
-        # image.size = (100, 100)
-
-        # image.allow_stretch = True
-        # image.keep_ratio = False
-        # image.source = 'D:\Workspace\Python\Kivy\Hello-kivy\img/1-1.png'
-
-        # texture = Texture.create(size=(image.width, image.height))
-        # texture.blit_buffer(product[2], colorfmt='rgba', bufferfmt='ubyte')
-        # image.texture = texture
-        
-        # pil_image = PILImage.open(io.BytesIO(product[2]))
-        # texture = pil_image.tobytes()
-
-        # image_stream = BytesIO(product[2])
-        # loader = ImageLoader()
-        # texture = loader.load(image_stream.getvalue(), ext="png")
-
         image = Image()
         image_stream = io.BytesIO(product[2])
         img = CoreImage(image_stream, ext='png')
         image.texture = img.texture
+        image.name = product[0]
 
         image.bind(on_touch_down=self.on_image_click)
 
@@ -97,7 +83,7 @@ class ItemScreen(Screen):
 
     def draw_page(self, id):
         product = db.get_product(id)
-        print(product)
+        # print(product)
 
 
 class WindowManager(ScreenManager):

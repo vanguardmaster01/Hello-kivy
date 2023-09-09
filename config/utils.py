@@ -1,5 +1,11 @@
 dbPath = './DbFuncs/sql.db'
 
+screenX = 600
+screenY = 900
+
+itemLength = 220
+
+
 # convert image to blob data
 def convert_to_blod_data(filename):
     with open(filename, 'rb') as file:

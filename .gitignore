@@ -12,3 +12,6 @@ DbFuncs/__pycache__/
 
 # ignore model/__pache__ directory
 model/__pycache__/
+
+# ignore __pycache__ directory
+__pycache__/

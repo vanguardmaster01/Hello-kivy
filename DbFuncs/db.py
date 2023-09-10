@@ -91,7 +91,7 @@ def get_product(id):
 		cursor = conn.cursor()
 
 		print(f'id: {id}')
-		select_query = '''select id, name, count, price from products where id = ?'''
+		select_query = '''select id, name, image, count, price from products where id = ?'''
 		cursor.execute(select_query, (id,))
 		record = cursor.fetchone()
 		

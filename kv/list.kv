@@ -115,6 +115,7 @@ WindowManager:
                     pos: self.pos
                     size: self.size
             Image:
+                id: back_img
                 source:'./img/back.png'
                 size: self.size
                 size_hint_x: None
@@ -129,12 +130,13 @@ WindowManager:
                     id: image_layout
 
             GridLayout:
-                rows: 2
+                rows: 3
                 size_hint_x: .4
                 GridLayout:
                     padding: 10, 50, 10, 10
                     cols: 2
                     spacing: 5
+                    size_hint_y:.3
                     canvas.before:
                         Color:
                             rgb: (192,0,0)
@@ -146,37 +148,65 @@ WindowManager:
                         rows: 5
                         spacing: 5
                         Label:
-                            text: 'Art.sdasdadsNr:'
+                            text: 'Art.sdasdads:'
                             color: (0,0,0,1)
+                            halign: 'left'
+                            valign: 'middle'
+                            size_hint_x: None
+                            text_size: self.width, None
                         Label:
                             text: 'Züge:'
                             color: (0,0,0,1)
+                            halign: 'left'
+                            valign: 'middle'
+                            size_hint_x: None
+                            text_size: self.width, None
                         Label:
                             text: 'Nikotin:'
                             color: (0,0,0,1)
+                            halign: 'left'
+                            size_hint_x: None
+                            text_size: self.width, None
                         Label:
                             text: 'Akku:'
                             color: (0,0,0,1)
+                            size_hint_x: None
+                            halign: 'left'
+                            text_size: self.width, None
                         Label:
                             text: 'Tankvol.:'
                             color: (0,0,0,1)
+                            size_hint_x: None
+                            halign: 'left'
+                            text_size: self.width, None
                     GridLayout:
                         rows: 5
                         spacing: 5
                         id: info_layout
-
-                GridLayout:
-                    cols: 3
-                    spacing: 5
+                RelativeLayout:
+                    id: price_layout
+                    size_hint_y:.15
                     Image:
-                        source: './img/left.png'
-                        size: self.texture_size
-                    Label:
-                        text: '10.00 EUR'
-                        color: (0,0,0,1)
-                    Image:
-                        source: './img/right.png'
-                        size: self.texture_size
+                        source: './img/price.png'
+                        size: self.size
+                CountNumber:
+                    size_hint_y:.15
+                    canvas.before:
+                        Color:
+                            rgb: (1,1,0,1)
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                        Color:
+                            rgb: (192,0,0)
+                        Line:
+                            width: 1
+                            rectangle: self.x + 15 , self.y + 10 , self.width - 35, self.height - 20
+                        
+                        Line:
+                            width: 1
+                            rectangle: self.x + 15 , self.y + 10 , self.width - 75, self.height - 20
+                        
        
         GridLayout:
             cols: 2
@@ -184,7 +214,7 @@ WindowManager:
             padding: 10, 20, 10, 20
             size_hint: (1, 0.3)
             BoxLayout:
-                size_hint_x: 0.6
+                size_hint_x: 0.5
                 padding: [10, 0, 0, 0]
                 Button:
                     text: '20.00 Eur'
@@ -213,12 +243,13 @@ WindowManager:
                     background_color: (1,1,1,0)
                     size_hint_x: None
                     size:(200, self.height)
+                    on_press: root.on_buy_press()
 
         BoxLayout:
             id: bigo_layout
             size_hint:(1, 0.8)
             orientation: 'vertical'
-            padding: [20, 20, 20, 20]
+            padding: 10
             canvas.before:
                 Color:
                     rgb: (192,0,0)
@@ -226,18 +257,26 @@ WindowManager:
                     width: 1
                     rectangle: self.x + 5 , self.y + 20 , self.width - 10, self.height - 50
             Label:
-                text: 'Hello orldHello worldHello worldHello worldHello worldHello worldHello worldHello worldHello'
+                text: 'Hello worldHello worldHello worldworldHello world'
                 color: (0.1,0.1,0.1,.5)
+                halign: 'left'
+                valign: 'middle'
+                size_hint_x: None   
+                size: (500, self.height)
+                text_size: self.width, None
             Label:
                 text: 'Hello world'
                 color: (0.1,0.1,0.1,.5)
+                halign: 'left'
+                valign: 'middle'
+                size_hint_x: None   
+                text_size: self.width, None
             Label:
                 text: 'Hello world'
                 color: (0.1,0.1,0.1,.5)
-            Label:
-                text: 'Hello world'
-                color: (0.1,0.1,0.1,.5)
-            Label:
-                text: 'Hello world'
-                color: (0.1,0.1,0.1,.5)
-                
+                halign: 'left'
+                valign: 'middle'
+                size_hint_x: None   
+                text_size: self.width, None
+
+<CountNumber>:

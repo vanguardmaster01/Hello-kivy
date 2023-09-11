@@ -6,11 +6,11 @@ from kivy.uix.image import Image
 from kivy.uix.label import Label
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.relativelayout import RelativeLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.core.image import Image as CoreImage
 from kivy.clock import Clock
-from kivy.graphics import Color, Rectangle
+from kivy.graphics import Color, Rectangle, Bezier
 # from kivy.graphics.texture import Texture
 from kivy.properties import StringProperty
 from PIL import Image as PILImage
@@ -139,7 +139,7 @@ class ListScreen(Screen):
 
         return boxlayout
 
-
+# product image
 class ImageItem(Image):
     def __init__(self, **kwargs):
         super(ImageItem, self).__init__(**kwargs)
@@ -152,7 +152,9 @@ class ImageItem(Image):
             self.manager.current = 'Item'
             self.manager.get_screen("Item").set_item_id(self.name)
 
+# top bar image
 class CategoryItem(Image):
     def __init__(self, **kwargs):
         super(CategoryItem, self).__init__(**kwargs)
+
 

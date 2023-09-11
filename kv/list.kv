@@ -222,8 +222,10 @@ WindowManager:
                     font_size: 30
                     background_normal: './img/bg-btn-1.png'
                     background_color: (1,1,1,0.5)
+                    background_down: './img/price.png'
                     size_hint_x: None
                     size:(200, self.height)
+                    on_press:root.on_money_button_press()
             BoxLayout:
                 size_hint_x: 0.4
                 padding: [10, 0, 0, 0]
@@ -280,3 +282,4 @@ WindowManager:
                 text_size: self.width, None
 
 <CountNumber>:
+<RoundedBorderGrid>:

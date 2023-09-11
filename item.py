@@ -106,11 +106,15 @@ class ItemScreen(Screen):
 
     def on_back_press(self, instance, touch):
         if instance.collide_point(*touch.pos):
-            print('back_pressed')
+            self.manager.current = 'List'
+            self.clear_widgets()
+            self.__init__()
 
     def on_buy_press(self):
         print(f'buy_pressed')
 
+    def on_money_button_press(self):
+        print('money_button_press')
 
 
 class CountNumber(GridLayout):
@@ -158,3 +162,50 @@ class CountNumber(GridLayout):
 
     def update_number(self):
         self.number_text.text = str(self.number)
+
+
+class RoundedBorderGrid(GridLayout):
+    def __init__(self, **kwargs):
+        super(RoundedBorderGrid, self).__init__(**kwargs)
+        
+        self.bind(pos=self.update_canvas, size=self.update_canvas)
+        
+    def update_canvas(self, *args):
+        self.canvas.before.clear()
+        with self.canvas.before:
+            Color(1, 0, 0, 1)  # Set the color of the border
+
+            # Parameters for top left rounded corner
+            top_left_center = (self.x, self.top)
+            top_left_radius = 20
+
+            # Parameters for top right rounded corner
+            top_right_center = (self.right, self.top)
+            top_right_radius = 20
+
+            # Parameters for straight bottom corners
+            bottom_left = (self.x, self.y)
+            bottom_right = (self.right, self.y)
+
+            self.draw_rounded_border(top_left_center, top_left_radius, top_right_center, top_right_radius, bottom_left,
+                                     bottom_right, width=2)
+
+    def draw_rounded_border(self, top_left_center, top_left_radius, top_right_center, top_right_radius, bottom_left,
+                            bottom_right, width=2):
+        diameter_top_left = top_left_radius * 2
+        diameter_top_right = top_right_radius * 2
+
+        # Draw the top-left rounded corner
+        with self.canvas.before:
+            Bezier(points=[bottom_left, bottom_left, top_left_center[0] - top_left_radius,
+                           top_left_center[1] + top_left_radius, bottom_left], segment_length=20, width=width)
+
+        # Draw the top-right rounded corner
+        with self.canvas.before:
+            Bezier(points=[bottom_right, bottom_right, top_right_center[0] + top_right_radius,
+                           top_right_center[1] + top_right_radius, bottom_right], segment_length=20, width=width)
+
+        # Draw the straight bottom sides
+        with self.canvas.before:
+            Color(1, 1, 1, 1)  # Set the color for straight borders
+            Bezier(points=[bottom_left, bottom_right], width=width)

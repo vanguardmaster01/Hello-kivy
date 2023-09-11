@@ -8,6 +8,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.scrollview import ScrollView
 from kivy.core.image import Image as CoreImage
 from kivy.clock import Clock
 from kivy.graphics import Color, Rectangle, Bezier
@@ -26,6 +27,7 @@ from item import ItemScreen
 
 
 class ListScreen(Screen):
+    WIDTH = utils.screenX
     def __init__(self, **kwargs):
         super(ListScreen, self).__init__(**kwargs)
         Clock.schedule_once(self.retrieve_image_layout)
@@ -36,6 +38,7 @@ class ListScreen(Screen):
         self.scroll_position = 0
         self.scroll_move_dis = utils.itemLength
         self.scroll_y_dis = 0
+        self.scroll_y_offset = 0
 
     # prevent to delay, so we can get image_layou and draw dynamically
     def retrieve_image_layout(self, dt):
@@ -70,14 +73,6 @@ class ListScreen(Screen):
         products = db.get_products()
         return products
     
-    # click image, then navigate to itemscreen with item id
-    # def on_image_click(self, instance, touch):
-    #     for image in self.imageList:
-    #         if image.collide_point(*touch.pos):
-    #             # self.manager.current = 'Item'
-    #             self.manager.get_screen("Item").set_item_id(image.name)
-
-    
     # draw one image
     def on_draw_item(self, product):
         image = ImageItem()
@@ -92,25 +87,42 @@ class ListScreen(Screen):
     ###################################################################
     def retrieve_up_and_down_image(self, dt):
         up_image = self.ids.up_image
+        up_image.size_hint_x = None
+        up_image.width = utils.screenX * 2 / 3
         up_image.bind(on_touch_down = self.on_up_img_click)
         down_image = self.ids.down_image
+        down_image.size_hint_x = None
+        down_image.width = utils.screenX * 2 / 3
         down_image.bind(on_touch_down = self.on_down_img_click)
 
     def on_up_img_click(self, instance, touch):
         if instance.collide_point(*touch.pos):
             # image_scroll_view.scroll_y = 1
-            if(self.scroll_position > 0):
-                self.ids.image_scroll_view.scroll_y += self.scroll_y_dis
-                self.scroll_position -= self.scroll_move_dis
-            # image_scroll_view = self.ids.image_scroll_view
-            # image_scroll_view.scroll_to(self.ids.image_layout)
+            # if(self.scroll_position > 0):
+            #     self.ids.image_scroll_view.scroll_y += self.scroll_y_dis
+            #     self.scroll_position -= self.scroll_move_dis
+
+            imageScrollView = self.ids.image_scroll_view
+            imageLayout = self.ids.image_layout
+            if imageLayout.children:
+                firstChild = imageLayout.children[-1]
+                imageScrollView.scroll_to(firstChild)
+            
+            
 
     def on_down_img_click(self, instance, touch):
         if instance.collide_point(*touch.pos):
             # image_scroll_view.scroll_y = 1
-            if(self.ids.image_scroll_view.scroll_y > 0.01):
-                self.ids.image_scroll_view.scroll_y -= self.scroll_y_dis
-                self.scroll_position += self.scroll_move_dis
+            # if(self.ids.image_scroll_view.scroll_y > 0.01):
+            #     self.ids.image_scroll_view.scroll_y -= self.scroll_y_dis
+            #     self.scroll_position += self.scroll_move_dis
+
+            imageScrollView = self.ids.image_scroll_view
+            imageLayout = self.ids.image_layout
+            if imageLayout.children:
+                lastChild = imageLayout.children[0]
+                imageScrollView.scroll_to(lastChild)
+
 
     ########################################################################
 
@@ -139,7 +151,7 @@ class ListScreen(Screen):
 
         return boxlayout
 
-# product image
+# product image item
 class ImageItem(Image):
     def __init__(self, **kwargs):
         super(ImageItem, self).__init__(**kwargs)
@@ -158,3 +170,22 @@ class CategoryItem(Image):
         super(CategoryItem, self).__init__(**kwargs)
 
 
+# image scroll view
+class ImageScrollView(ScrollView):
+    def __init__(self, **kwargs):
+        super(ImageScrollView, self).__init__(**kwargs)
+
+        # self.imageLayout = self.ids.image_layout
+
+    # def on_touch_move(self, touch):
+    #     if self.collide_point(*touch.pos):
+    #         if touch.dy > 0 and self.scroll_y < 1:  # Scrolling up
+    #             print(f'scroll----{self.scroll_y}')
+    #             self.scroll_y -= self.scroll_y_dis  # Adjust the scroll_y value to modify the scrolling speed
+    #         elif self.scroll_y > 0.01:  # Scrolling down
+    #             print(f'scroll+++++{self.scroll_y}')
+    #             self.scroll_y += self.scroll_y_dis
+    #         else:
+    #             print('out')
+
+    #     return super(ImageScrollView, self).on_touch_move(touch)

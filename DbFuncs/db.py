@@ -107,3 +107,26 @@ def get_product(id):
 			print('connection is closed')
 
 	return record
+
+def get_product_count():
+	try:
+		conn = sqlite3.connect(utils.dbPath)
+		cursor = conn.cursor()
+
+		print(f'id: {id}')
+		select_query = '''select count(id) from products '''
+		cursor.execute(select_query)
+		record = cursor.fetchone()
+		
+		conn.commit()
+		cursor.close()
+
+	except sqlite3.Error as error:
+		print('fail', error)
+		record = None
+	finally:
+		if conn:
+			conn.close()
+			print('connection is closed')
+
+	return record[0]	

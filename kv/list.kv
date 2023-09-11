@@ -47,7 +47,8 @@ WindowManager:
             rows: 3
             padding:6, 10, 6, 10
 
-            BoxLayout:
+            BoxLayout:         # up button layout
+                id: up_image_layout
                 canvas.before:
                     Color:
                         rgb: 192 ,0 ,0
@@ -55,12 +56,13 @@ WindowManager:
                         pos: self.pos[0], self.pos[1] + self.height / 2
                         size: self.width, self.height / 2
                 size_hint_y: 0.15
+                padding: [root.WIDTH / 6, 0, 0, 0]
                 Image:
                     id: up_image
                     source: './img/up.png'
                     size: self.texture_size
 
-            ScrollView:
+            ImageScrollView:  # product images view
                 id: image_scroll_view
                 size: root.width, root.height
                 pos: 0, 0
@@ -78,7 +80,7 @@ WindowManager:
                     size_hint_y: None
                     spacing: 20
                     padding: 10, 30, 10, 20
-            BoxLayout:
+            BoxLayout:        # down button layout
                 canvas.before:
                     Color:
                         rgb: 192 ,0 ,0
@@ -86,6 +88,7 @@ WindowManager:
                         pos: self.pos
                         size: self.width, self.height / 2
                 size_hint_y: 0.15
+                padding: [root.WIDTH / 6, 0, 0, 0]
                 Image:
                     id: down_image
                     source: './img/down.png'
@@ -127,7 +130,7 @@ WindowManager:
                 padding: 10
                 size_hint_x: .6
                 RelativeLayout:
-                    id: image_layout
+                    id: item_image_layout
 
             GridLayout:
                 rows: 3
@@ -283,3 +286,4 @@ WindowManager:
 
 <CountNumber>:
 <RoundedBorderGrid>:
+<ImageScrollView>:

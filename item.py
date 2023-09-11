@@ -10,7 +10,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.core.image import Image as CoreImage
 from kivy.clock import Clock
-from kivy.graphics import Color, Rectangle, Triangle
+from kivy.graphics import Color, Rectangle, Triangle, Bezier
 import io
 import math
 
@@ -58,7 +58,7 @@ class ItemScreen(Screen):
         image_stream = io.BytesIO(product[2])
         img = CoreImage(image_stream, ext='png')
         image.texture = img.texture
-        self.ids.image_layout.add_widget(image)
+        self.ids.item_image_layout.add_widget(image)
 
         self.draw_label('Abc1234')
         self.draw_label('600')

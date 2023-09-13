@@ -35,10 +35,14 @@ class ItemScreen(Screen):
         product = db.get_product(id)
 
         # display name
-        self.draw_title(product[1])
+        self.draw_title(product.name)
 
         # display product (image, price, ...)
         self.draw_product_info(product)
+
+        # inputMoneyLabel = Label(text='Geld einwerfen')
+        # self.ids.input_money_button.width = inputMoneyLabel.width
+        # self.ids.input_money_button.text = inputMoneyLabel.text
 
         self.draw_bigo()
 
@@ -47,15 +51,16 @@ class ItemScreen(Screen):
     def draw_title(self, name):
         titleLayout = self.ids.title_layout    
         titleLabel = Label(text=name)
-        titleLabel.color = '#c00000'
-        titleLabel.font_size = 30   
-        titleLabel.size_hint_x = None
-        titleLabel.padding = [200, 5, 5, 5]
+        titleLabel.color = (1, 0, 0, 1)
+        titleLabel.font_size = 30  
+        titleLabel.size_hint_x = None 
+        titleLabel.width = 200
+        # titleLabel.padding = [20, 5, 5, 5]
         titleLayout.add_widget(titleLabel)
 
     def draw_product_info(self, product):
         image = Image()
-        image_stream = io.BytesIO(product[2])
+        image_stream = io.BytesIO(product.thumbnail)
         img = CoreImage(image_stream, ext='png')
         image.texture = img.texture
         self.ids.item_image_layout.add_widget(image)
@@ -66,7 +71,7 @@ class ItemScreen(Screen):
         self.draw_label('40asda0mAh')
         self.draw_label('2ml')
 
-        priceStr = str(product[4]) + ' EUR'
+        priceStr = str(product.price) + ' EUR'
         priceLabel = Label(
             text= priceStr,
             size_hint=(None, None),
@@ -83,7 +88,7 @@ class ItemScreen(Screen):
         boxLayout.padding = [10, 2, 2, 2]
 
         firstLabel = Label(text=value)
-        firstLabel.color = '#000000'
+        firstLabel.color = (0,0,0,1)
         firstLabel.halign = 'left'
         firstLabel.size_hint_x = None
         firstLabel.text_size = (firstLabel.width, None)
@@ -95,11 +100,9 @@ class ItemScreen(Screen):
         bigoLayout = self.ids.bigo_layout
         # Create an Image widget
         img = Image(source='./img/bigo.png')  # Replace 'your_image.png' with your image file path
-        
         # Calculate the position for the image (top-right corner)
-        image_x = utils.screenX - img.width - 50
-        image_y = utils.screenY / 4  - img.height / 2
-
+        image_x = utils.screenX - img.width - 20
+        image_y = utils.screenY / 3 - img.height / 2 -100
         # Draw the image on the canvas
         with bigoLayout.canvas:
             Rectangle(pos=(image_x, image_y), size=img.size, texture=img.texture)
@@ -129,7 +132,7 @@ class CountNumber(GridLayout):
     def draw_widget(self):
         self.number_text = Label(
             text=str(self.number),
-            color='#000000',
+            color=(0,0,0,1),
             font_size = 30
         )
         self.number_text.size_hint_x = 0.6

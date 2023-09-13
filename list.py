@@ -34,7 +34,7 @@ class ListScreen(Screen):
         Clock.schedule_once(self.retrieve_up_and_down_image)
         Clock.schedule_once(self.retrieve_category_layout)
         # self.imageList = []
-        self.imageLayoutHeight = 0
+        self.productImageHeight = 0
         self.scroll_position = 0
         self.scroll_move_dis = utils.itemLength
         self.scroll_y_dis = 0
@@ -43,31 +43,31 @@ class ListScreen(Screen):
     # prevent to delay, so we can get image_layou and draw dynamically
     def retrieve_image_layout(self, dt):
         image_layout = self.ids.image_layout  # Access the image_layout widget
-    
+
         # get all products.
         products = self.get_products()
 
         # draw Items
         if products:
             # get scroll_y step 
-            self.scroll_y_dis = 1 / (math.ceil(len(products) / 2)  + 1)
+            # self.scroll_y_dis = 1 / (math.ceil(len(products) / 2)  - 1)
 
             for product in products:
                 image = self.on_draw_item(product)
-                self.imageLayoutHeight += image.height
+                self.productImageHeight = image.height
                 container = BoxLayout()
                 lp = (utils.screenX / 2 - utils.itemLength - 10) / 2
                 container.padding = [lp ,10,lp,10]
                 container.size_hint_y = None
                 container.height = image.height  + 10
                 container.add_widget(image)
-                # self.imageList.append(image)
                 image_layout.add_widget(container)
                 
         else:
-            image_layout.add_widget(Label(text='Image not found'))
+            image_layout.add_widget(Label(text='Image not found', color=(0,0,0,1)))
 
-        image_layout.height = self.imageLayoutHeight + 10
+        rowCnt = math.ceil(len(products) / 2 + 1)
+        image_layout.height = rowCnt * self.productImageHeight + (rowCnt - 1) * 20
     
     def get_products(self):
         products = db.get_products()
@@ -76,10 +76,10 @@ class ListScreen(Screen):
     # draw one image
     def on_draw_item(self, product):
         image = ImageItem()
-        image_stream = io.BytesIO(product[2])
+        image_stream = io.BytesIO(product.thumbnail)
         img = CoreImage(image_stream, ext='png')
         image.texture = img.texture
-        image.name = product[0]
+        image.name = product.id
         image.manager = self.manager      
 
         return image
@@ -138,12 +138,12 @@ class ListScreen(Screen):
         boxlayout = BoxLayout(orientation='vertical')
         image = CategoryItem(source='./img/category.png')
         specLabel = Label(text='bis zu 600')
-        specLabel.color = '#000000'
+        specLabel.color = (0,0,0,1)
         specLabel.font_size = 15
         nameLabel = Label(text='Zuge')
-        nameLabel.color = '#000000'
+        nameLabel.color = (0,0,0,1)
         nameLabel.font_size = 15
-        nameLabel.background_color = '#111111'
+        nameLabel.background_color = (1,1,1,1)
         boxlayout.add_widget(image)
         boxlayout.add_widget(specLabel)
         boxlayout.add_widget(nameLabel)

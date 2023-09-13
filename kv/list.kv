@@ -1,7 +1,11 @@
 WindowManager:
+    AdScreen:
     ListScreen:
     ItemScreen:
 
+<AdScreen>:
+    name:'Ad'
+    
 <ListScreen>:
     name: 'List'
     canvas.before:
@@ -196,11 +200,6 @@ WindowManager:
                     size_hint_y:.15
                     canvas.before:
                         Color:
-                            rgb: (1,1,0,1)
-                        Rectangle:
-                            pos: self.pos
-                            size: self.size
-                        Color:
                             rgb: (192,0,0)
                         Line:
                             width: 1
@@ -220,18 +219,18 @@ WindowManager:
                 size_hint_x: 0.5
                 padding: [10, 0, 0, 0]
                 Button:
-                    text: '20.00 Eur'
-                    color: (0,0,0,1)
+                    id: input_money_button
+                    text: 'Geld einwerfen'
+                    color: (1,0,0,1)
+                    halign: 'center'
                     font_size: 30
                     background_normal: './img/bg-btn-1.png'
                     background_color: (1,1,1,0.5)
                     background_down: './img/price.png'
-                    size_hint_x: None
-                    size:(200, self.height)
                     on_press:root.on_money_button_press()
             BoxLayout:
                 size_hint_x: 0.4
-                padding: [10, 0, 0, 0]
+                padding: [30, 0, 0, 0]
                 Button:
                     id: round_button
                     canvas.before:

@@ -20,16 +20,27 @@ import math
 from DbFuncs import db
 from DbFuncs import db_create
 from model.Product import Product
+from model.Ad import Ad
 
 from config import utils
 
 from item import ItemScreen
 from list import ListScreen
+from ad import AdScreen
 
 dbFlag = False
 
 class WindowManager(ScreenManager):
-    pass
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        with self.canvas.before:
+            Color(1, 1, 1, 1) # a white color
+            self.rect = Rectangle(pos=self.pos, size=self.size)
+            self.bind(pos=self.update_rect, size=self.update_rect)
+
+    def update_rect(self, *args):
+        self.rect.pos = self.pos
+        self.rect.size = self.size
 
 kv = Builder.load_file('./kv/list.kv')
 
@@ -37,8 +48,9 @@ class MainApp(App):
     # Main Application
     def build(self):
         Window.size = (utils.screenX, utils.screenY)
-        
+                      
         sm = WindowManager()
+        sm.add_widget(AdScreen(name='Ad'))
         sm.add_widget(ListScreen(name='List'))
         sm.add_widget(ItemScreen(name='Item'))
 
@@ -51,15 +63,20 @@ class MainApp(App):
     # create db and insert data 
     def insertProduct(self):
             
-            db_create.create_table_if_not_exists()
+            # db.delete_ads()
+            db_create.create_tables()
+
 
             names = ['1-1.png', '1-2.png', '2-1.png', '2-2.png', '1-1.png', '1-2.png', '2-1.png']
-            path = 'D:\Workspace\Python\Kivy\Hello-kivy\img'
+            path = './img'
             for name in names:
                 image = path + "/" + name
-                data = Product('111', image, 10, 100)
-                db.insert_product(data)
-    
+                data = Product(1, '1234', 'Prodcut1', image, '20mg', '300mAh', 'XXX', 10, 'EUR', 'This is .....')
+                # db.insert_product(data)
+
+            ad = Ad(1, 'PPT', './pptx.pptx')
+            # ad = Ad(1, 'MP4', './test.mp4')
+            db.insert_ads(ad)
 
 
 if __name__ == '__main__':

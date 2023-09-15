@@ -44,7 +44,7 @@ class ItemScreen(Screen):
         # self.ids.input_money_button.width = inputMoneyLabel.width
         # self.ids.input_money_button.text = inputMoneyLabel.text
 
-        self.draw_bigo()
+        self.draw_bigo(product.caution)
 
         self.ids.back_img.bind(on_touch_down = self.on_back_press)
         
@@ -54,7 +54,7 @@ class ItemScreen(Screen):
         titleLabel.color = (1, 0, 0, 1)
         titleLabel.font_size = 30  
         titleLabel.size_hint_x = None 
-        titleLabel.width = 200
+        titleLabel.width = 300
         # titleLabel.padding = [20, 5, 5, 5]
         titleLayout.add_widget(titleLabel)
 
@@ -65,11 +65,11 @@ class ItemScreen(Screen):
         image.texture = img.texture
         self.ids.item_image_layout.add_widget(image)
 
-        self.draw_label('Abc1234')
+        self.draw_label(product.itemno)
         self.draw_label('600')
-        self.draw_label('20mg')
-        self.draw_label('40asda0mAh')
-        self.draw_label('2ml')
+        self.draw_label(product.nicotine)
+        self.draw_label(product.batterypack)
+        self.draw_label(product.tankvolumn)
 
         priceStr = str(product.price) + ' EUR'
         priceLabel = Label(
@@ -96,16 +96,30 @@ class ItemScreen(Screen):
         self.ids.info_layout.add_widget(boxLayout)
 
     # display bigo (labels, img on the top-right )
-    def draw_bigo(self):
+    def draw_bigo(self, cautionText):
         bigoLayout = self.ids.bigo_layout
+        
+        for i in range (1):
+            caution = Label(text=cautionText)
+            caution.halign='left'
+            caution.valign = 'middle'
+            caution.color = (.1,.1,.1,.5)
+            caution.size_hint_x = None
+            caution.size = (500, caution.height /2 )
+            print(f'height:{caution.height}')
+            caution.text_size = (caution.width, None)
+
+            bigoLayout.add_widget(caution)
+
         # Create an Image widget
-        img = Image(source='./img/bigo.png')  # Replace 'your_image.png' with your image file path
+        img = Image(source='./img/bigo.png')
         # Calculate the position for the image (top-right corner)
         image_x = utils.screenX - img.width - 20
         image_y = utils.screenY / 3 - img.height / 2 -100
         # Draw the image on the canvas
         with bigoLayout.canvas:
             Rectangle(pos=(image_x, image_y), size=img.size, texture=img.texture)
+
 
     def on_back_press(self, instance, touch):
         if instance.collide_point(*touch.pos):

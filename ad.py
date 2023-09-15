@@ -8,6 +8,7 @@ from DbFuncs import db
 import base64
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.videoplayer import VideoPlayer
+from kivy.uix.video import Video    
 from kivy.uix.image import Image
 from pptx import Presentation
 from config import utils
@@ -25,14 +26,14 @@ class AdScreen(Screen):
         Clock.schedule_once(self.retrieve_layout)
 
     def retrieve_layout(self, dt):
-        ad = db.get_ad_row(35)
+        ad = db.get_ad()
         if ad:
             if ad.type == 'MP4':
-                temp_file = './img/ad.mp4'
+                path = os.path.dirname(__file__)
+                temp_file = path + '/img/ad.mp4'
                 utils.write_to_file(ad.content, temp_file)
 
                 videoPlayerLayout = VideoPlayerLayout(temp_file)
-                print(f'self.manager{self.manager}')
                 videoPlayerLayout.manager = self.manager
                 videoPlayerLayout.bind(on_touch_up=videoPlayerLayout.on_video_touch_up)
                 
@@ -96,7 +97,7 @@ class VideoPlayerLayout(BoxLayout):
         self.temp_file = temp_file
 
         # Create a VideoPlayer widget
-        self.player = VideoPlayer(source=temp_file, state='play',
+        self.player = Video(source=temp_file, state='play',
                                   options={'eos': 'loop'})
 
         # Add the VideoPlayer widget to the BoxLayout

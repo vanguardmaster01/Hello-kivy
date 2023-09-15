@@ -15,6 +15,3 @@ model/__pycache__/
 
 # ignore __pycache__ directory
 __pycache__/
-
-# ignore test directory
-test/

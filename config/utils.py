@@ -1,3 +1,4 @@
+import os
 dbPath = './DbFuncs/sql.db'
 
 screenX = 600
@@ -20,6 +21,6 @@ def write_to_file(data, filename):
     print("Stored blob data into: ", filename, "\n")
 
 
-
-#     path = 'D:\\tmp\\' + product[1] + '.png'
+# path = os.path.dirname( __file__ ) + '/test.mp4'
+# convert_to_blod_data(path)
 # utils.write_to_file(product[2], path)

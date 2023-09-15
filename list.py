@@ -107,9 +107,7 @@ class ListScreen(Screen):
             if imageLayout.children:
                 firstChild = imageLayout.children[-1]
                 imageScrollView.scroll_to(firstChild)
-            
-            
-
+          
     def on_down_img_click(self, instance, touch):
         if instance.collide_point(*touch.pos):
             # image_scroll_view.scroll_y = 1
@@ -128,22 +126,29 @@ class ListScreen(Screen):
 
     def retrieve_category_layout(self, dt):
         categoryLayout = self.ids.category_layout  # Access the image_layout widget
-
-        for i in range(8):
-            image = self.on_draw_category_item()
+        machines = db.get_machines()
+        # machines = db.get_products()
+        for machine in machines:
+            image = self.on_draw_category_item(machine)
             categoryLayout.add_widget(image)
             categoryLayout.width += image.width
 
-    def on_draw_category_item(self):
+    def on_draw_category_item(self, machine):
         boxlayout = BoxLayout(orientation='vertical')
-        image = CategoryItem(source='./img/category.png')
-        specLabel = Label(text='bis zu 600')
+
+        image = CategoryItem()
+        image_stream = io.BytesIO(machine.thumbnail)
+        img = CoreImage(image_stream, ext='png')
+        image.texture = img.texture
+        specLabel = Label(text= machine.value)
         specLabel.color = (0,0,0,1)
         specLabel.font_size = 15
-        nameLabel = Label(text='Zuge')
+
+        nameLabel = Label(text= (machine.name))
         nameLabel.color = (0,0,0,1)
         nameLabel.font_size = 15
         nameLabel.background_color = (1,1,1,1)
+
         boxlayout.add_widget(image)
         boxlayout.add_widget(specLabel)
         boxlayout.add_widget(nameLabel)

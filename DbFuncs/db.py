@@ -1,6 +1,7 @@
 import sqlite3
 import datetime
 from config import utils
+import os
 
 # import os
 # import sys
@@ -22,8 +23,8 @@ def insert_ads(ad):
 		insert_query = """insert into ads (type, content)
 							values (?, ?)"""
 
-		blodData = utils.convert_to_blod_data(ad.content)
-		data = (ad.type, (blodData))
+		# blodData = utils.convert_to_blod_data(ad.content)
+		data = (ad.type, ad.content)
 		
 		cursor.execute(insert_query, data)
 		
@@ -47,10 +48,11 @@ def insert_machine(machine):
 		conn = sqlite3.connect(utils.dbPath)
 		cursor = conn.cursor()
 
-		insert_query = """insert into machines (name, unit, value)
-							values (?, ?, ?)"""
-
-		data = (machine.name, machine.unit, machine.value)
+		insert_query = """insert into machines (name, unit, value, thumbnail)
+							values (?, ?, ?, ?)"""
+		
+		# blodData = utils.convert_to_blod_data(machine.thumbnail)
+		data = (machine.name, machine.unit, machine.value, machine.thumbnail)
 		
 		cursor.execute(insert_query, data)
 		
@@ -76,13 +78,14 @@ def insert_product(product):
 		conn = sqlite3.connect(utils.dbPath)
 		cursor = conn.cursor()
 
-		insert_query = """insert into products (itemno, name, thumbnail, nicotine, batterypack, tankvolumn, price, currency, caution)
-							values (?, ?, ?, ?, ?, ?, ?, ?, ?)"""
-		imageBlob = utils.convert_to_blod_data(product.thumbnail)
-		data = (product.itemno, product.name, (imageBlob), product.nicotine, product.batterypack, product.tankvolumn, product.price, product.currency, product.caution)
+		insert_query = """insert into products (itemno, name, thumbnail, nicotine, batterypack, tankvolumn, price, currency, caution, stock)
+							values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+		# imageBlob = utils.convert_to_blod_data(product.thumbnail)
+		data = (product.itemno, product.name, product.thumbnail, product.nicotine, product.batterypack, 
+		  product.tankvolumn, product.price, product.currency, product.caution, product.stock)
 		cursor.execute(insert_query, data)
 		
-		print("inserted successfully")
+		print("inserted product successfully")
 		
 		conn.commit()
 		cursor.close()
@@ -156,7 +159,9 @@ def get_product(id):
 		cursor.execute(select_query, (id,))
 		record = cursor.fetchone()
 		
-		product = convert_to_product(record)
+		product = None
+		if record:
+			product = convert_to_product(record)
 
 		conn.commit()
 		cursor.close()
@@ -181,8 +186,10 @@ def get_ad():
 		cursor.execute(select_query)
 		record = cursor.fetchone()
 
-		ad = convert_to_ad(record)
-		print(f'len(ad):{ad.type}')
+		ad = None
+		if record:
+			ad = convert_to_ad(record)
+
 		conn.commit()
 		cursor.close()
 
@@ -206,7 +213,9 @@ def get_ad_row(id):
 		cursor.execute(select_query, (id,))
 		record = cursor.fetchone()
 
-		ad = convert_to_ad(record)
+		ad = None
+		if record:
+			ad = convert_to_ad(record)
 
 		conn.commit()
 		cursor.close()
@@ -223,29 +232,31 @@ def get_ad_row(id):
 
 
 # get Ad
-def get_machine(id):
+def get_machines():
 	try:
 		conn = sqlite3.connect(utils.dbPath)
 		cursor = conn.cursor()
 
-		select_query = '''select * from machines where id = ?'''
-		cursor.execute(select_query, (id,))
-		record = cursor.fetchone()
+		select_query = '''select * from machines'''
+		cursor.execute(select_query)
+		record = cursor.fetchall()
 		
-		machine = convert_to_machine(record)
+		machines = []
+		for item in record:
+			machine = convert_to_machine(item)
+			machines.append(machine)
 
 		conn.commit()
 		cursor.close()
 
 	except sqlite3.Error as error:
 		print('get_machine_fail', error)
-		machine = None
 	finally:
 		if conn:
 			conn.close()
 			print('connection is closed')
 
-	return machine
+	return machines
 
 def get_product_count():
 	try:
@@ -307,9 +318,28 @@ def delete_ads():
 			conn.close()
 			print('connection is closed')
 
+# delete Ads
+def delete_products():
+	try:
+		conn = sqlite3.connect(utils.dbPath)
+		cursor = conn.cursor()
+
+		delete_query = '''delete from products'''
+		cursor.execute(delete_query)
+		
+		conn.commit()
+		cursor.close()
+
+	except sqlite3.Error as error:
+		print('delete_products_fail', error)
+	finally:
+		if conn:
+			conn.close()
+			print('connection is closed')
+
 def convert_to_product(record):
 	product = Product(record[0], record[1], record[2], record[3], record[4], 
-				   record[5], record[6], record[7], record[8], record[9])
+				   record[5], record[6], record[7], record[8], record[9], record[10])
 
 	return product
 
@@ -318,6 +348,5 @@ def convert_to_ad(record):
 	return ad
 	
 def convert_to_machine(record):
-	machine = Machine(record[0], record[1], record[2], record[3])
+	machine = Machine(record[0], record[1], record[2], record[3], record[4])
 	return machine
-

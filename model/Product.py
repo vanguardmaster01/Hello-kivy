@@ -1,7 +1,7 @@
 class Product:
-    def __init__(self, id, itemno, name, thumbnail, nicotine, batterypack, tankvolumn, price, currency, caution):
+    def __init__(self, id, itemno, name, thumbnail, nicotine, batterypack, tankvolumn, price, currency, caution, stock):
         self.id = id
-        self.itemno = name
+        self.itemno = itemno
         self.name = name
         self.thumbnail = thumbnail
         self.nicotine = nicotine
@@ -10,3 +10,4 @@ class Product:
         self.price = price
         self.currency = currency
         self.caution = caution
+        self.stock = stock

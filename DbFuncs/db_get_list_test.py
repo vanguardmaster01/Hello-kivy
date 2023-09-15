@@ -74,8 +74,8 @@ def insert_ads(ad):
 
 		insert_query = """insert into ads (type, content)
 							values (?, ?)"""
-
 		blodData = convert_to_blod_data(ad.content)
+		print(blodData)
 		data = (ad.type, (blodData))
 		
 		cursor.execute(insert_query, data)
@@ -94,8 +94,3 @@ def insert_ads(ad):
 			conn.close()
 			print('connection is closed')
 		return False
-
-# update_product(1, '../img/owl.jpg', 500)
-ad = Ad(1, 'PPT', '../222.pptx')
-insert_ads(ad)
-# db.get_ad_row(31)

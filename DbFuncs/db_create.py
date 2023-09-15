@@ -28,7 +28,8 @@ def create_product_table_if_not_exists():
 									tankvolumn TEXT NOT NULL,
 									price REAL NOT NULL,
 									currency TEXT NOT NULL,
-									caution TEXT NOT NULL
+									caution TEXT NOT NULL,
+									stock INTEGER NOT NULL
 									)'''
 
 		# Create a users table
@@ -79,7 +80,8 @@ def create_machine_table_if_not_exists():
 									id INTEGER PRIMARY KEY AUTOINCREMENT, 
 									name TEXT NOT NULL,
 									unit TEXT NOT NULL,
-									value TEXT NOT NULL
+									value TEXT NOT NULL,
+									thumbnail BLOB NOT NULL
 									)'''
 
 		# Create a users table

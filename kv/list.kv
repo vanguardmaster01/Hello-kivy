@@ -72,12 +72,6 @@ WindowManager:
                 pos: 0, 0
                 scroll_type: ["bars","content"]
                 bar_width: 5
-                canvas.before:
-                    Color:
-                        rgb: 192 ,100 ,0
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
                 GridLayout:
                     id:image_layout
                     cols:2
@@ -149,13 +143,13 @@ WindowManager:
                             rgb: (192,0,0)
                         Line:
                             width: 1
-                            rectangle: self.x , self.y - 15 , self.width-10, self.height-10
+                            rectangle: self.x , self.y, self.width-10, self.height-30
 
                     GridLayout:
                         rows: 5
                         spacing: 5
                         Label:
-                            text: 'Art.sdasdads:'
+                            text: 'Art.Nr:'
                             color: (0,0,0,1)
                             halign: 'left'
                             valign: 'middle'
@@ -260,28 +254,7 @@ WindowManager:
                 Line:
                     width: 1
                     rectangle: self.x + 5 , self.y + 20 , self.width - 10, self.height - 50
-            Label:
-                text: 'Hello worldHello worldHello worldworldHello world'
-                color: (0.1,0.1,0.1,.5)
-                halign: 'left'
-                valign: 'middle'
-                size_hint_x: None   
-                size: (500, self.height)
-                text_size: self.width, None
-            Label:
-                text: 'Hello world'
-                color: (0.1,0.1,0.1,.5)
-                halign: 'left'
-                valign: 'middle'
-                size_hint_x: None   
-                text_size: self.width, None
-            Label:
-                text: 'Hello world'
-                color: (0.1,0.1,0.1,.5)
-                halign: 'left'
-                valign: 'middle'
-                size_hint_x: None   
-                text_size: self.width, None
+
 
 <CountNumber>:
 <RoundedBorderGrid>:

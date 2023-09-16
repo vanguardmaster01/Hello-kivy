@@ -1,8 +1,10 @@
 import sqlite3
 import datetime
-from config import utils
+# from config import utils
 import os
-
+import threading
+from dotenv import load_dotenv
+load_dotenv()
 # import os
 # import sys
 
@@ -15,9 +17,65 @@ from model.Product import Product
 from model.Ad import Ad
 from model.Machine import Machine
 
-def insert_ads(ad):
+dbPath = os.environ.get('dbPath')
+
+
+
+
+#lock = threading.Lock()
+conn = None
+
+def openDatabase():
 	try:
-		conn = sqlite3.connect(utils.dbPath)
+		global conn
+		print("opening")
+		conn = sqlite3.connect(dbPath)
+		# Mape value from SQLite's THREADSAFE to Python's DBAPI 2.0
+		# threadsafety attribute.
+		sqlite_threadsafe2python_dbapi = {0: 0, 2: 1, 1: 3}
+		#conn = sqlite3.connect(dbPath)
+		threadsafety = conn.execute(
+					"""
+			select * from pragma_compile_options
+			where compile_options like 'THREADSAFE=%'
+			"""
+				).fetchone()[0]
+		print(threadsafety)
+		conn.close()
+
+		print("aaa")
+
+		threadsafety_value = int(threadsafety.split("=")[1])
+
+		if sqlite_threadsafe2python_dbapi[threadsafety_value] == 3:
+			check_same_thread = False
+		else:
+			check_same_thread = True
+
+		conn = sqlite3.connect(dbPath, check_same_thread=check_same_thread)
+
+		print("ok", conn)
+
+		return True
+	except sqlite3.Error as error:
+		print('db connection error', error)
+
+	print("aaaaadddd")	
+	return False
+
+def closeDatabase():
+	try:
+		global conn
+		if conn:
+			conn.close()
+	except sqlite3.Error as error:
+		print('db closing error', error)
+
+def insert_ads(ad):
+	
+	try:
+		global conn
+		#conn = sqlite3.connect(dbPath)
 		cursor = conn.cursor()
 
 		insert_query = """insert into ads (type, content)
@@ -32,20 +90,21 @@ def insert_ads(ad):
 		
 		conn.commit()
 		cursor.close()
-
 		return True
+
 	except sqlite3.Error as error:
 		print('insert_ad_fail', error)
 		return False
 	finally:
-		if conn:
-			conn.close()
-			print('connection is closed')
-		return False
+		#if conn:
+			#conn.close()
+		print('insert_ad_connection is closed')
 
 def insert_machine(machine):
+	
 	try:
-		conn = sqlite3.connect(utils.dbPath)
+		global conn
+		#conn = sqlite3.connect(dbPath)
 		cursor = conn.cursor()
 
 		insert_query = """insert into machines (name, unit, value, thumbnail)
@@ -60,71 +119,71 @@ def insert_machine(machine):
 		
 		conn.commit()
 		cursor.close()
-
 		return True
+
 	except sqlite3.Error as error:
 		print('insert_machine_fail', error)
 		return False
 	finally:
-		if conn:
-			conn.close()
-			print('connection is closed')
-		return False
+		print('insert_machine_connection is closed')
 
 
 # insert into product table
 def insert_product(product):
+	
 	try:
-		conn = sqlite3.connect(utils.dbPath)
+		global conn
+		#conn = sqlite3.connect(dbPath)
 		cursor = conn.cursor()
 
 		insert_query = """insert into products (itemno, name, thumbnail, nicotine, batterypack, tankvolumn, price, currency, caution, stock)
 							values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
 		# imageBlob = utils.convert_to_blod_data(product.thumbnail)
 		data = (product.itemno, product.name, product.thumbnail, product.nicotine, product.batterypack, 
-		  product.tankvolumn, product.price, product.currency, product.caution, product.stock)
+		product.tankvolumn, product.price, product.currency, product.caution, product.stock)
 		cursor.execute(insert_query, data)
 		
 		print("inserted product successfully")
 		
 		conn.commit()
 		cursor.close()
-
 		return True
+
 	except sqlite3.Error as error:
 		print('insert_prodcut_fail', error)
 		return False
 	finally:
-		if conn:
-			conn.close()
-			print('connection is closed')
-		return False
+		print('insert_prodcut_connection is closed')
 
 # update product item
 def update_product(id, image, price):
+	
 	try:
-		conn = sqlite3.connect(utils.dbPath)
+		global conn
+		#conn = sqlite3.connect(dbPath)
 		cursor = conn.cursor()
 
 		update_query = '''update products set thumbnail = ?, price = ? where id = ?'''
-		imageBlob = utils.convert_to_blod_data(image)
-		params = (imageBlob, price, id)
+		# imageBlob = utils.convert_to_blod_data(image)
+		params = (image, price, id)
 		cursor.execute(update_query, params)
 		
 		conn.commit()
 		cursor.close()
+		return True
 
 	except sqlite3.Error as error:
 		print('update_product_fail', error)
+		return False
 	finally:
-		if conn:
-			conn.close()
-			print('connection is closed')
+		print('update_prodcut_connection is closed')
 
 # get all products
 def get_products():
+	
 	try:
-		conn = sqlite3.connect(utils.dbPath)
+		global conn
+		#conn = sqlite3.connect(dbPath)
 		cursor = conn.cursor()
 
 		select_query = '''select * from products'''
@@ -136,50 +195,50 @@ def get_products():
 			product = convert_to_product(record)
 			products.append(product)
 
-		conn.commit()
+		#conn.commit()
 		cursor.close()
+		return products
 
 	except sqlite3.Error as error:
 		print('get_prodcuts_fail', error)
-		records = []
+		return []
 	finally:
-		if conn:
-			conn.close()
-			print('connection is closed')
+		print('get_prodcuts_connection is closed')
 
-	return products
 
 # get product
-def get_product(id):
+def get_product(itemno):
+	
 	try:
-		conn = sqlite3.connect(utils.dbPath)
+		global conn
+		#conn = sqlite3.connect(dbPath)
 		cursor = conn.cursor()
 
-		select_query = '''select * from products where id = ?'''
-		cursor.execute(select_query, (id,))
+		select_query = '''select * from products where itemno = ?'''
+		cursor.execute(select_query, (itemno,))
 		record = cursor.fetchone()
 		
 		product = None
 		if record:
 			product = convert_to_product(record)
 
-		conn.commit()
+		#conn.commit()
 		cursor.close()
+
+		return product
 
 	except sqlite3.Error as error:
 		print('get_prodcut_fail', error)
-		record = None
+		return None
 	finally:
-		if conn:
-			conn.close()
-			print('connection is closed')
-
-	return product
+		print('get_product_connection is closed')
 
 # get Ad
 def get_ad():
+	
 	try:
-		conn = sqlite3.connect(utils.dbPath)
+		global conn
+		#conn = sqlite3.connect(dbPath)
 		cursor = conn.cursor()
 
 		select_query = '''select * from ads'''
@@ -190,23 +249,22 @@ def get_ad():
 		if record:
 			ad = convert_to_ad(record)
 
-		conn.commit()
+		#conn.commit()
 		cursor.close()
+		return ad
 
 	except sqlite3.Error as error:
 		print('get_ad_fail', error)
-		ad = None
+		return None
 	finally:
-		if conn:
-			conn.close()
-			print('connection is closed')
-
-	return ad
+		print('get_ad_connection is closed')
 
 # get Ad
 def get_ad_row(id):
+	
 	try:
-		conn = sqlite3.connect(utils.dbPath)
+		global conn
+		#conn = sqlite3.connect(dbPath)
 		cursor = conn.cursor()
 
 		select_query = '''select * from ads where id = ?'''
@@ -217,24 +275,23 @@ def get_ad_row(id):
 		if record:
 			ad = convert_to_ad(record)
 
-		conn.commit()
+		#conn.commit()
 		cursor.close()
+		return ad
 
 	except sqlite3.Error as error:
 		print('get_ad_fail', error)
-		ad = None
+		return None
 	finally:
-		if conn:
-			conn.close()
-			print('connection is closed')
-
-	return ad
+		print('get_ad_row_connection is closed')
 
 
 # get Ad
 def get_machines():
+	
 	try:
-		conn = sqlite3.connect(utils.dbPath)
+		global conn
+		#conn = sqlite3.connect(dbPath)
 		cursor = conn.cursor()
 
 		select_query = '''select * from machines'''
@@ -246,44 +303,48 @@ def get_machines():
 			machine = convert_to_machine(item)
 			machines.append(machine)
 
-		conn.commit()
+		#conn.commit()
 		cursor.close()
+		return machines
 
 	except sqlite3.Error as error:
 		print('get_machine_fail', error)
+		return []
 	finally:
-		if conn:
-			conn.close()
-			print('connection is closed')
-
-	return machines
+		print('get_machine_connection is closed')
 
 def get_product_count():
+	
 	try:
-		conn = sqlite3.connect(utils.dbPath)
+		global conn
+		#conn = sqlite3.connect(dbPath)
 		cursor = conn.cursor()
 
 		select_query = '''select count(id) from products '''
 		cursor.execute(select_query)
 		record = cursor.fetchone()
 		
-		conn.commit()
+		cnt = 0
+		if record:
+			cnt = record[0]
+
+		#conn.commit()
 		cursor.close()
+
+		return cnt
 
 	except sqlite3.Error as error:
 		print('fail', error)
-		record = None
+		return None
 	finally:
-		if conn:
-			conn.close()
-			print('connection is closed')
-
-	return record[0]	
+		print('get_prodcut_count_connection is closed')
 
 # delete Machines
 def delete_machines():
+	
 	try:
-		conn = sqlite3.connect(utils.dbPath)
+		global conn
+		#conn = sqlite3.connect(dbPath)
 		cursor = conn.cursor()
 
 		delete_query = '''delete from machines'''
@@ -291,18 +352,20 @@ def delete_machines():
 		
 		conn.commit()
 		cursor.close()
+		return True
 
 	except sqlite3.Error as error:
 		print('delete_machine_fail', error)
+		return False
 	finally:
-		if conn:
-			conn.close()
-			print('connection is closed')
+		print('delet_machines_connection is closed')
 
 # delete Ads
 def delete_ads():
+	
 	try:
-		conn = sqlite3.connect(utils.dbPath)
+		global conn
+		#conn = sqlite3.connect(dbPath)
 		cursor = conn.cursor()
 
 		delete_query = '''delete from ads'''
@@ -310,18 +373,20 @@ def delete_ads():
 		
 		conn.commit()
 		cursor.close()
+		return True
 
 	except sqlite3.Error as error:
 		print('delete_ads_fail', error)
+		return False
 	finally:
-		if conn:
-			conn.close()
-			print('connection is closed')
+		print('delete_ads_connection is closed')
 
 # delete Ads
 def delete_products():
+	
 	try:
-		conn = sqlite3.connect(utils.dbPath)
+		global conn
+		#conn = sqlite3.connect(dbPath)
 		cursor = conn.cursor()
 
 		delete_query = '''delete from products'''
@@ -329,13 +394,13 @@ def delete_products():
 		
 		conn.commit()
 		cursor.close()
+		return True
 
 	except sqlite3.Error as error:
 		print('delete_products_fail', error)
+		return False
 	finally:
-		if conn:
-			conn.close()
-			print('connection is closed')
+		print('delte_produts_connection is closed')
 
 def convert_to_product(record):
 	product = Product(record[0], record[1], record[2], record[3], record[4], 

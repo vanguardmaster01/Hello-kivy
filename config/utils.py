@@ -1,10 +1,10 @@
 import os
-dbPath = './DbFuncs/sql.db'
+# dbPath = './DbFuncs/sql.db'
 
-screenX = 600
-screenY = 900
+# screenX = 600
+# screenY = 900
 
-itemLength = 220
+# itemLength = 220
 
 
 # convert image to blob data
@@ -20,7 +20,7 @@ def write_to_file(data, filename):
         file.write(data)
     print("Stored blob data into: ", filename, "\n")
 
-
-# path = os.path.dirname( __file__ ) + '/test.mp4'
-# convert_to_blod_data(path)
-# utils.write_to_file(product[2], path)
+lockList = []
+def initLock(lock):
+    global lockList
+    lockList.append(lock)

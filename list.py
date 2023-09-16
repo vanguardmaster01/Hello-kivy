@@ -22,46 +22,61 @@ from DbFuncs import db
 from DbFuncs import db_create
 from model.Product import Product
 
-from config import utils
 from item import ItemScreen
+from config.global_vars import global_machines, global_produts
+import os
+from dotenv import load_dotenv
+from config.utils import lockList
 
+load_dotenv()
 
 class ListScreen(Screen):
-    WIDTH = utils.screenX
+    WIDTH = int(os.environ.get('screenX'))
     def __init__(self, **kwargs):
         super(ListScreen, self).__init__(**kwargs)
-        Clock.schedule_once(self.retrieve_image_layout)
+        self.timer = Clock.schedule_interval(self.retrieve_image_layout, 0.03)     
         Clock.schedule_once(self.retrieve_up_and_down_image)
-        Clock.schedule_once(self.retrieve_category_layout)
+        Clock.schedule_interval(self.retrieve_category_layout, 0.03)
         # self.imageList = []
+
+        self.screenX = int(os.environ.get('screenX'))
+        self.itemLength = int(os.environ.get('itemLength'))
+
         self.productImageHeight = 0
         self.scroll_position = 0
-        self.scroll_move_dis = utils.itemLength
+        self.scroll_move_dis = self.itemLength
         self.scroll_y_dis = 0
         self.scroll_y_offset = 0
 
     # prevent to delay, so we can get image_layou and draw dynamically
     def retrieve_image_layout(self, dt):
-        image_layout = self.ids.image_layout  # Access the image_layout widget
+        if lockList[0].acquire(False) == False:
+            return        
 
         # get all products.
-        products = self.get_products()
+        products = db.get_products()
+        lockList[0].release()
 
+        image_layout = self.ids.image_layout  # Access the image_layout widget
         # draw Items
         if products:
             # get scroll_y step 
-            # self.scroll_y_dis = 1 / (math.ceil(len(products) / 2)  - 1)
+            # self.scroll_y_dis = 1 / (math.ceil(len(products) / 2)  - 1)           
 
             for product in products:
                 image = self.on_draw_item(product)
                 self.productImageHeight = image.height
                 container = BoxLayout()
-                lp = (utils.screenX / 2 - utils.itemLength - 10) / 2
+                lp = (self.screenX / 2 - self.itemLength - 10) / 2
                 container.padding = [lp ,10,lp,10]
                 container.size_hint_y = None
                 container.height = image.height  + 10
                 container.add_widget(image)
                 image_layout.add_widget(container)
+
+            #stop clock
+            if self.timer != None:
+                self.timer.cancel()
                 
         else:
             image_layout.add_widget(Label(text='Image not found', color=(0,0,0,1)))
@@ -69,9 +84,6 @@ class ListScreen(Screen):
         rowCnt = math.ceil(len(products) / 2 + 1)
         image_layout.height = rowCnt * self.productImageHeight + (rowCnt - 1) * 20
     
-    def get_products(self):
-        products = db.get_products()
-        return products
     
     # draw one image
     def on_draw_item(self, product):
@@ -79,7 +91,7 @@ class ListScreen(Screen):
         image_stream = io.BytesIO(product.thumbnail)
         img = CoreImage(image_stream, ext='png')
         image.texture = img.texture
-        image.name = product.id
+        image.name = product.itemno
         image.manager = self.manager      
 
         return image
@@ -88,11 +100,11 @@ class ListScreen(Screen):
     def retrieve_up_and_down_image(self, dt):
         up_image = self.ids.up_image
         up_image.size_hint_x = None
-        up_image.width = utils.screenX * 2 / 3
+        up_image.width = self.screenX * 2 / 3
         up_image.bind(on_touch_down = self.on_up_img_click)
         down_image = self.ids.down_image
         down_image.size_hint_x = None
-        down_image.width = utils.screenX * 2 / 3
+        down_image.width = self.screenX * 2 / 3
         down_image.bind(on_touch_down = self.on_down_img_click)
 
     def on_up_img_click(self, instance, touch):
@@ -125,9 +137,14 @@ class ListScreen(Screen):
     ########################################################################
 
     def retrieve_category_layout(self, dt):
+        if lockList[0].acquire(False) == False:
+            return        
+
         categoryLayout = self.ids.category_layout  # Access the image_layout widget
         machines = db.get_machines()
-        # machines = db.get_products()
+        lockList[0].release()
+        
+        # machines = global_machines
         for machine in machines:
             image = self.on_draw_category_item(machine)
             categoryLayout.add_widget(image)
@@ -161,7 +178,9 @@ class ImageItem(Image):
     def __init__(self, **kwargs):
         super(ImageItem, self).__init__(**kwargs)
         self.manager = None
-        self.size = (utils.itemLength, utils.itemLength)
+        self.itemLength = os.environ.get('itemLength')
+
+        self.size = (self.itemLength, self.itemLength)
         self.size_hint = (None, None)
 
     def on_touch_down(self, touch):

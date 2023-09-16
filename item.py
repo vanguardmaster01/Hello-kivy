@@ -13,40 +13,52 @@ from kivy.clock import Clock
 from kivy.graphics import Color, Rectangle, Triangle, Bezier
 import io
 import math
+from functools import partial
 
 from DbFuncs import db
 from DbFuncs import db_create
 from model.Product import Product
 
-from config import utils
-
 from kivy.graphics import RoundedRectangle, Color, Line
+import os
+from dotenv import load_dotenv
+from config.utils import lockList
+load_dotenv()
 
 class ItemScreen(Screen):
     def __init__(self, **kwargs):
         super(ItemScreen, self).__init__(**kwargs)
         self.itemId = None
+        self.timer = None
 
     def set_item_id(self, id):
         self.itemId = id
-        self.draw_page(self.itemId)
+        self.timer = Clock.schedule_interval(self.draw_page, 0.03)        
 
-    def draw_page(self, id):
-        product = db.get_product(id)
+    def draw_page(self, dt):
+        if lockList[0].acquire(False) == False:
+            return
+        product = db.get_product(self.itemId)
+        lockList[0].release()
 
-        # display name
-        self.draw_title(product.name)
+        if product:
+            # display name
+            self.draw_title(product.name)
 
-        # display product (image, price, ...)
-        self.draw_product_info(product)
+            # display product (image, price, ...)
+            self.draw_product_info(product)
 
-        # inputMoneyLabel = Label(text='Geld einwerfen')
-        # self.ids.input_money_button.width = inputMoneyLabel.width
-        # self.ids.input_money_button.text = inputMoneyLabel.text
+            # inputMoneyLabel = Label(text='Geld einwerfen')
+            # self.ids.input_money_button.width = inputMoneyLabel.width
+            # self.ids.input_money_button.text = inputMoneyLabel.text
 
-        self.draw_bigo(product.caution)
+            self.draw_bigo(product.caution)
 
-        self.ids.back_img.bind(on_touch_down = self.on_back_press)
+            self.ids.back_img.bind(on_touch_down = self.on_back_press)
+            
+            #stop clock
+            if self.timer != None:
+                self.timer.cancel()
         
     def draw_title(self, name):
         titleLayout = self.ids.title_layout    
@@ -106,7 +118,6 @@ class ItemScreen(Screen):
             caution.color = (.1,.1,.1,.5)
             caution.size_hint_x = None
             caution.size = (500, caution.height /2 )
-            print(f'height:{caution.height}')
             caution.text_size = (caution.width, None)
 
             bigoLayout.add_widget(caution)
@@ -114,8 +125,8 @@ class ItemScreen(Screen):
         # Create an Image widget
         img = Image(source='./img/bigo.png')
         # Calculate the position for the image (top-right corner)
-        image_x = utils.screenX - img.width - 20
-        image_y = utils.screenY / 3 - img.height / 2 -100
+        image_x = int(os.environ.get('screenX')) - img.width - 20
+        image_y = int(os.environ.get('screenY')) / 3 - img.height / 2 -100
         # Draw the image on the canvas
         with bigoLayout.canvas:
             Rectangle(pos=(image_x, image_y), size=img.size, texture=img.texture)

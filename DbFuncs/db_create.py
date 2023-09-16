@@ -2,20 +2,22 @@ import sqlite3
 import datetime
 
 import os
+from dotenv import load_dotenv
+load_dotenv()
 import sys
 
-from config import utils
-
+dbPath = os.environ.get('dbPath')
 
 def create_tables():
 	create_product_table_if_not_exists()
 	create_ads_table_if_not_exists()
 	create_machine_table_if_not_exists()
+	#None
 
 # create product table
 def create_product_table_if_not_exists():
 	try:
-		conn = sqlite3.connect(utils.dbPath)
+		conn = sqlite3.connect(dbPath)
 		cursor = conn.cursor()
 
 		create_product_table_query = '''CREATE TABLE IF NOT EXISTS products (
@@ -48,7 +50,7 @@ def create_product_table_if_not_exists():
 # create product table
 def create_ads_table_if_not_exists():
 	try:
-		conn = sqlite3.connect(utils.dbPath)
+		conn = sqlite3.connect(dbPath)
 		cursor = conn.cursor()
 
 		create_ads_table_query = '''CREATE TABLE IF NOT EXISTS ads (
@@ -73,7 +75,7 @@ def create_ads_table_if_not_exists():
 # create product table
 def create_machine_table_if_not_exists():
 	try:
-		conn = sqlite3.connect(utils.dbPath)
+		conn = sqlite3.connect(dbPath)
 		cursor = conn.cursor()
 
 		create_machine_table_query = '''CREATE TABLE IF NOT EXISTS machines (

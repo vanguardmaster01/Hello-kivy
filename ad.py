@@ -15,6 +15,10 @@ from config import utils
 import os
 from io import BytesIO
 import subprocess
+from dotenv import load_dotenv
+from config.global_vars import global_ads
+
+load_dotenv()
 
 # import pyglet
 # from pyglet.media import AVBinSource, StaticMemorySource, Player
@@ -27,10 +31,11 @@ class AdScreen(Screen):
 
     def retrieve_layout(self, dt):
         ad = db.get_ad()
+        # ad = global_ads
         if ad:
             if ad.type == 'MP4':
                 path = os.path.dirname(__file__)
-                temp_file = path + '/img/ad.mp4'
+                temp_file = path + os.environ.get('adPath')
                 utils.write_to_file(ad.content, temp_file)
 
                 videoPlayerLayout = VideoPlayerLayout(temp_file)
@@ -107,5 +112,5 @@ class VideoPlayerLayout(BoxLayout):
         # Handle the video player touch up event
         if video.collide_point(*touch.pos):
             self.manager.current = 'List'
-            os.remove(self.temp_file)
+            # os.remove(self.temp_file)
 

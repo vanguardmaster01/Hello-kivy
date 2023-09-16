@@ -1,3 +1,15 @@
+################   windows        #########################
+visit https://www.python.org/downloads/release, download python 3.9 and install it 
+pip install kivy
+pip install Pillow
+pip install python-pptx
+pip install ffpyplayer
+
+pip install python-dotenv
+
+
+
+################          ubuntu               ####################
 sudo apt update
 sudo apt upgrade
 sudo add-apt-repository ppa:deadsnakes/p
@@ -26,9 +38,6 @@ pip3.9 install websockets
 apt-get install libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio
 
 pip3.9 install ffpyplayer
-
-
-
 
 ##########run command
 #######go to your workspace

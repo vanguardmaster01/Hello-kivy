@@ -20,26 +20,29 @@ import asyncio
 from kivy.clock import Clock
 import threading
 import time
-from config.utils import initLock
-from config.utils import stopWebsocket
+from config.utils import initLock, initThreadLock, lockList
 from kivy.config import Config
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.button import Button
+from kivy.uix.progressbar import ProgressBar
+from kivy.uix.popup import Popup
+from contextlib import suppress
+
 
 _thread = None
 stop_thread = False
 loop = None
 delta = 0
 
-
 def between_callback():
-    global stop_thread
+    # global stop_thread
     global loop
     # while not stop_thread:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    loop.create_task(api.connect_to_server())
-    loop.run_forever()
-    # loop.close()
+    loop.run_until_complete(api.connect_to_server())
 
 
 class WindowManager(ScreenManager):
@@ -70,12 +73,13 @@ class MainApp(App):
 
         print("main thread id", threading.get_native_id())
         initLock(threading.Lock())
+        initThreadLock(0)
 
         #connect db
         db.openDatabase()
 
-        # _thread = threading.Thread(target=between_callback)
-        # _thread.start()
+        _thread = threading.Thread(target=between_callback)
+        _thread.start()
 
         width = int(os.environ.get('screenX'))
         height = int(os.environ.get('screenY'))
@@ -84,12 +88,7 @@ class MainApp(App):
 
         Config.set('graphics', 'width', width)
         Config.set('graphics', 'height', height)
-        Config.set('graphics', 'custom_titlebar', '1')
         Config.write()
-
-        # Window.size = (width, height)
-        
-        # asyncio.get_event_loop().run_until_complete(api.connect_to_server())
        
         sm.add_widget(adScreen)
         sm.add_widget(listScreen)
@@ -101,41 +100,60 @@ class MainApp(App):
         listScreen.bind(on_touch_down=self.touch_screen)
         itemScreen.bind(on_touch_down=self.touch_screen)
         
+        Window.bind(on_request_close=self.on_request_close)
+
+
         return sm
 
+    # if user action, .....
     def touch_screen(self, instance, touch):
         global delta
         delta = 0
+   
 
-    def on_stop(self):
-        print('here')
+    def wait_apithread_stop(self, td):  
         global _thread
-        global stop_thread
         global loop
-
-        stopWebsocket = True
-        # stop_thread = True
-        
-        _thread.join(1)
-
-        # process = multiprocessing.current_process()
-        # process.kill()
-
-        loop.stop()
-
-        print('222')
-
+        try:
+            _thread.join(0.1)
+            if lockList[1] == 2:
+                _thread.join()
+                self.stopEvent.cancel() 
+                self.stop()
+        except RuntimeError:
+            pass        
+  
+    # if nothing action for 1 min, display ad
     def count_time(self, dt):
         global delta
         delta += 1
         print(f'delta:{delta}')
-        if delta > 10:
+        if delta > 10000:
             sm.current = 'Ad'
             listScreen.clear_widgets()
             listScreen.__init__()
             itemScreen.clear_widgets()
             itemScreen.__init__()
             delta = 0
+
+    def on_request_close(self, *args):
+        print('request_close')
+        self.textpopup(title='Exit', text='Are you sure?')
+        return True
+    
+    def wait_threadstop(self, *args):
+        lockList[1] = 1
+        self.stopEvent = Clock.schedule_interval(self.wait_apithread_stop, 0.2)
+
+    def textpopup(self, title='', text=''):
+        box = BoxLayout(orientation='vertical')
+        box.add_widget(Label(text=text))
+        mybutton = Button(text='OK', size_hint=(1, 0.5))
+        # box.add_widget(progress_bar)
+        box.add_widget(mybutton)
+        popup = Popup(title=title, content=box, size_hint=(None, None), size=(300, 150), auto_dismiss = False)
+        mybutton.bind(on_release=self.wait_threadstop)
+        popup.open()
 
 if __name__ == '__main__':
     MainApp().run()

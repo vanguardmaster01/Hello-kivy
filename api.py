@@ -17,7 +17,7 @@ import threading
 from dotenv import load_dotenv
 load_dotenv()
 from config.global_vars import global_ads, global_machines, global_produts
-from config.utils import lockList, stopWebsocket
+from config.utils import lockList
 
 
 hostName = os.environ.get('hostName')
@@ -41,6 +41,8 @@ def send_get_ads_info():
     # Send an HTTP GET request to a URL of your choice
     response = requests.post(hostName + url, verify=False)
 
+    if lockList[1]:
+        return
     # Check the response status code
     if response.status_code == 200:
         responseData = response.json()   # {status : , message : , details : [{},]}
@@ -50,6 +52,8 @@ def send_get_ads_info():
         db.delete_ads()
         params = Ad(0, adData['type'], base64.b64decode(adData['content']))
         global_ads.append(params)
+        if lockList[1]:
+            return
         db.insert_ads(params)
     else:
         print(f"Request failed with status code: {response.status_code}")
@@ -61,6 +65,9 @@ def send_get_machine_info():
     url = "/api/machine/get_machine_info"
     response = requests.post(hostName + url, verify=False)
 
+    if lockList[1]:
+        return
+    
     # Check the response status code
     if response.status_code == 200:
         responseData = response.json()   # {status : , message : , details : [{},]}
@@ -73,6 +80,8 @@ def send_get_machine_info():
     
             global_machines.append(params)
 
+            if lockList[1]:
+                break
             db.insert_machine(params)
     else:
         print(f"Request failed with status code: {response.status_code}")
@@ -82,6 +91,8 @@ def send_get_products_info():
 
     # Send an HTTP GET request to a URL of your choice
     response = requests.post(hostName + url, verify=False)
+    if lockList[1]:
+        return
 
     # Check the response status code
     if response.status_code == 200:
@@ -93,6 +104,8 @@ def send_get_products_info():
             params = Product(0, item['itemno'], item['name'], base64.b64decode(item['thumbnail']), item['nicotine'], item['batterypack'],
                              item['tankvolumn'], item['price'], item['currency'], item['caution'], item['stock'])
             global_produts.append(params)
+            if lockList[1]:
+                break
             db.insert_product(params)
     else:
         print(f"Request failed with status code: {response.status_code}")
@@ -100,6 +113,7 @@ def send_get_products_info():
 def send_sell_product():
     url = "api/machine/sell_product"
 
+websocket=None
 
 async def connect_to_server():
     # ssl_context = ssl.create_default_context()
@@ -110,7 +124,7 @@ async def connect_to_server():
     ssl_context.verify_mode = ssl.CERT_NONE
 
     print("wss thread id", threading.get_native_id())
-
+    
     try:
         async with websockets.connect('wss://212.224.86.112:8443', ssl = ssl_context) as websocket:
             print('connected')
@@ -125,13 +139,23 @@ async def connect_to_server():
 
             machineConnectStatus = responseData['status']
             token = responseData['token']
+            cnt = 0
 
             if machineConnectStatus == 'success':
                 while True: 
-                    
-                    if stopWebsocket:
-                        print('http_request_close')
+                    if lockList[1]:
                         break
+
+                    if cnt % 50 != 0:
+                        time.sleep(0.1)
+                        cnt = cnt+1
+                        continue
+                    
+                    cnt = cnt+1
+                    # print(f'stopConnncet: {stopConnect}')
+                    # if stopConnect:
+                    #     print('http_request_close')
+                    #     break
 
                     statusData = {
                         'action': "MachineSendStatus",
@@ -142,11 +166,20 @@ async def connect_to_server():
                         }
                     }
                     await websocket.send(json.dumps(statusData))
+                    if (lockList[1]):
+                        break
+
                     statusResponse = await websocket.recv()
+                    if lockList[1]:
+                        break
+
                     statusResponseData = json.loads(statusResponse)
                     print(f'send_websockrt_every10s')
                     machineGetStatus = statusResponseData['status']
                     machineGetType = statusResponseData['type']
+
+                    if lockList[1]:
+                        break
                     
                     if machineGetStatus == 1:
                         lockList[0].acquire()
@@ -158,17 +191,19 @@ async def connect_to_server():
                             send_get_products_info()
                         lockList[0].release()
                 
-                    time.sleep(600)
             else:
                 pass
 
-            if stopWebsocket:
-                print('websocket_close')
-                await websocket.close()
+            # if stopConnect:
+            #     print('websocket_close')
+            #     await websocket.close()
     except:
         pass
         # global_ads = db.get_ad()
         # global_produts = db.get_products()
         # global_machines = db.get_machines()
+    lockList[1] = 2
 
+def close_connect():
+    pass
 # asyncio.get_event_loop().run_until_complete(connect_to_server())

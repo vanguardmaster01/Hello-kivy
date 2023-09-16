@@ -24,6 +24,7 @@ lockList = []
 def initLock(lock):
     global lockList
     lockList.append(lock)
+def initThreadLock(lock):
+    global lockList
+    lockList.append(lock)
 
-
-stopWebsocket = False

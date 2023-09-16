@@ -22,11 +22,14 @@ import threading
 import time
 from config.utils import initLock
 from config.utils import stopWebsocket
+from kivy.config import Config
 
 _thread = None
 stop_thread = False
 loop = None
 delta = 0
+
+
 def between_callback():
     global stop_thread
     global loop
@@ -52,7 +55,9 @@ class WindowManager(ScreenManager):
         self.rect.size = self.size
 
 kv = Builder.load_file('./kv/list.kv')
+
 sm = WindowManager()
+
 adScreen = AdScreen(name='Ad')        
 listScreen = ListScreen(name='List')        
 itemScreen = ItemScreen(name='Item') 
@@ -61,24 +66,28 @@ class MainApp(App):
 
     # Main Application
     def build(self):
-        
+        global _thread
+
         print("main thread id", threading.get_native_id())
         initLock(threading.Lock())
 
         #connect db
         db.openDatabase()
 
-        global _thread
-
-        _thread = threading.Thread(target=between_callback)
-        _thread.start()
+        # _thread = threading.Thread(target=between_callback)
+        # _thread.start()
 
         width = int(os.environ.get('screenX'))
         height = int(os.environ.get('screenY'))
 
         db_create.create_tables()
 
-        Window.size = (width, height)
+        Config.set('graphics', 'width', width)
+        Config.set('graphics', 'height', height)
+        Config.set('graphics', 'custom_titlebar', '1')
+        Config.write()
+
+        # Window.size = (width, height)
         
         # asyncio.get_event_loop().run_until_complete(api.connect_to_server())
        
@@ -106,6 +115,8 @@ class MainApp(App):
 
         stopWebsocket = True
         # stop_thread = True
+        
+        _thread.join(1)
 
         # process = multiprocessing.current_process()
         # process.kill()

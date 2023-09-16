@@ -36,7 +36,7 @@ class ListScreen(Screen):
         super(ListScreen, self).__init__(**kwargs)
         self.timer = Clock.schedule_interval(self.retrieve_image_layout, 0.03)     
         Clock.schedule_once(self.retrieve_up_and_down_image)
-        Clock.schedule_interval(self.retrieve_category_layout, 0.03)
+        self.categoryTimer = Clock.schedule_interval(self.retrieve_category_layout, 0.05)
         # self.imageList = []
 
         self.screenX = int(os.environ.get('screenX'))
@@ -143,12 +143,20 @@ class ListScreen(Screen):
         categoryLayout = self.ids.category_layout  # Access the image_layout widget
         machines = db.get_machines()
         lockList[0].release()
-        
+
         # machines = global_machines
-        for machine in machines:
-            image = self.on_draw_category_item(machine)
-            categoryLayout.add_widget(image)
-            categoryLayout.width += image.width
+        if machines:
+            for machine in machines:
+                image = self.on_draw_category_item(machine)
+                categoryLayout.add_widget(image)
+                categoryLayout.width += image.width
+            
+            #stop clock
+            if self.categoryTimer != None:
+                self.categoryTimer.cancel()
+        else:
+            categoryLayout.add_widget(Label(text='Image not found', color=(0,0,0,1)))
+
 
     def on_draw_category_item(self, machine):
         boxlayout = BoxLayout(orientation='vertical')

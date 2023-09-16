@@ -17,7 +17,7 @@ import threading
 from dotenv import load_dotenv
 load_dotenv()
 from config.global_vars import global_ads, global_machines, global_produts
-from config.utils import lockList
+from config.utils import lockList, stopWebsocket
 
 
 hostName = os.environ.get('hostName')
@@ -116,7 +116,7 @@ async def connect_to_server():
             print('connected')
             sendData = {'action': 'MachineConnect'}
             await websocket.send(json.dumps(sendData))
-
+            
             # Receive data
             response = await websocket.recv()
             responseData = json.loads(response)
@@ -128,6 +128,11 @@ async def connect_to_server():
 
             if machineConnectStatus == 'success':
                 while True: 
+                    
+                    if stopWebsocket:
+                        print('http_request_close')
+                        break
+
                     statusData = {
                         'action': "MachineSendStatus",
                         'payload': {
@@ -156,9 +161,14 @@ async def connect_to_server():
                     time.sleep(600)
             else:
                 pass
+
+            if stopWebsocket:
+                print('websocket_close')
+                await websocket.close()
     except:
-        global_ads = db.get_ad()
-        global_produts = db.get_products()
-        global_machines = db.get_machines()
+        pass
+        # global_ads = db.get_ad()
+        # global_produts = db.get_products()
+        # global_machines = db.get_machines()
 
 # asyncio.get_event_loop().run_until_complete(connect_to_server())

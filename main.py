@@ -1,26 +1,13 @@
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.lang import Builder
-from kivy.uix.button import ButtonBehavior
-from kivy.uix.image import Image
-from kivy.uix.label import Label
 from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.relativelayout import RelativeLayout
-from kivy.uix.boxlayout import BoxLayout
 from kivy.core.image import Image as CoreImage
 from kivy.clock import Clock
 from kivy.graphics import Color, Rectangle
-# from kivy.graphics.texture import Texture
-from kivy.properties import StringProperty
-from PIL import Image as PILImage
-import io
-import math
 
 from DbFuncs import db
 from DbFuncs import db_create
-from model.Product import Product
-from model.Ad import Ad
 
 from item import ItemScreen
 from list import ListScreen
@@ -34,16 +21,22 @@ from kivy.clock import Clock
 import threading
 import time
 from config.utils import initLock
+from config.utils import stopWebsocket
 
-mutex = 0
-# connectThread = threading.Thread(target=api.connect_to_server())
-
+_thread = None
+stop_thread = False
+loop = None
+delta = 0
 def between_callback():
+    global stop_thread
+    global loop
+    # while not stop_thread:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
 
-    loop.run_until_complete(api.connect_to_server())
-    loop.close()
+    loop.create_task(api.connect_to_server())
+    loop.run_forever()
+    # loop.close()
 
 
 class WindowManager(ScreenManager):
@@ -59,9 +52,13 @@ class WindowManager(ScreenManager):
         self.rect.size = self.size
 
 kv = Builder.load_file('./kv/list.kv')
-
+sm = WindowManager()
+adScreen = AdScreen(name='Ad')        
+listScreen = ListScreen(name='List')        
+itemScreen = ItemScreen(name='Item') 
 
 class MainApp(App):
+
     # Main Application
     def build(self):
         
@@ -71,39 +68,63 @@ class MainApp(App):
         #connect db
         db.openDatabase()
 
+        global _thread
+
         _thread = threading.Thread(target=between_callback)
         _thread.start()
-
 
         width = int(os.environ.get('screenX'))
         height = int(os.environ.get('screenY'))
 
         db_create.create_tables()
 
-        print('windownamager')
         Window.size = (width, height)
-
-        # asyncio.get_event_loop().run_until_complete(api.connect_to_server())
         
-        sm = WindowManager()
-        sm.add_widget(AdScreen(name='Ad'))
-        sm.add_widget(ListScreen(name='List'))
-        sm.add_widget(ItemScreen(name='Item'))
+        # asyncio.get_event_loop().run_until_complete(api.connect_to_server())
+       
+        sm.add_widget(adScreen)
+        sm.add_widget(listScreen)
+        sm.add_widget(itemScreen)
 
-        # Clock.schedule_interval(self.periodic_task, 10)
+        Clock.schedule_interval(self.count_time, 1)
+        
+        adScreen.bind(on_touch_down=self.touch_screen)
+        listScreen.bind(on_touch_down=self.touch_screen)
+        itemScreen.bind(on_touch_down=self.touch_screen)
         
         return sm
-    
-    # def connect_to_server(self, dt):
-    #     api.connect_to_server()
 
-    async def connect_to_server(self):
-        await api.connect_to_server()
-        print('Connected to server')
+    def touch_screen(self, instance, touch):
+        global delta
+        delta = 0
 
-    def periodic_task(self, dt):
-        asyncio.create_task(self.connect_to_server())
+    def on_stop(self):
+        print('here')
+        global _thread
+        global stop_thread
+        global loop
 
+        stopWebsocket = True
+        # stop_thread = True
+
+        # process = multiprocessing.current_process()
+        # process.kill()
+
+        loop.stop()
+
+        print('222')
+
+    def count_time(self, dt):
+        global delta
+        delta += 1
+        print(f'delta:{delta}')
+        if delta > 10:
+            sm.current = 'Ad'
+            listScreen.clear_widgets()
+            listScreen.__init__()
+            itemScreen.clear_widgets()
+            itemScreen.__init__()
+            delta = 0
 
 if __name__ == '__main__':
     MainApp().run()

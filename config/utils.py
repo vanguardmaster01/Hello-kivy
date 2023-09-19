@@ -1,8 +1,6 @@
 import os
+import threading
 # dbPath = './DbFuncs/sql.db'
-
-# screenX = 600
-# screenY = 900
 
 # itemLength = 220
 
@@ -20,11 +18,34 @@ def write_to_file(data, filename):
         file.write(data)
     print("Stored blob data into: ", filename, "\n")
 
-lockList = []
-def initLock(lock):
-    global lockList
-    lockList.append(lock)
-def initThreadLock(lock):
-    global lockList
-    lockList.append(lock)
+DBLOCK_ADS = 0
+DBLOCK_MACHINE = 1
+DBLOCK_PRODUCT = 2
+dbLockList = []
+def initDBLock():
+    global dbLockList
+    dbLockList.append(threading.Lock())
+    dbLockList.append(threading.Lock())
+    dbLockList.append(threading.Lock())
+
+def getDBLock(db):
+    return dbLockList[db]
+
+THREAD_INIT = 0
+THREAD_RUNNING = 1
+THREAD_STOPPING = 2
+THREAD_FINISHED = 3
+
+threadStatus = []
+def initThreadLock():
+    global threadStatus
+    threadStatus.append(THREAD_INIT)
+
+def setThreadStatus(status):
+    global threadStatus
+    threadStatus[0] = status
+
+def getThreadStatus():
+    global threadStatus
+    return threadStatus[0]
 

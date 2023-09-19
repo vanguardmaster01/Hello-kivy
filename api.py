@@ -17,32 +17,21 @@ import threading
 from dotenv import load_dotenv
 load_dotenv()
 from config.global_vars import global_ads, global_machines, global_produts
-from config.utils import lockList
-
+from config.utils import setThreadStatus, getThreadStatus, THREAD_INIT, THREAD_RUNNING, THREAD_STOPPING, THREAD_FINISHED
+from config.utils import getDBLock, DBLOCK_ADS, DBLOCK_MACHINE, DBLOCK_PRODUCT
+from websockets.exceptions import ConnectionClosed
 
 hostName = os.environ.get('hostName')
 # requestTimeStep = int(os.environ.get('requestTimeStep'))
-
-# def create_connect():
-#     ws = create_connection("wss://212.224.86.112:8443")
-#     print(ws.recv())
-#     print("Sending 'Hello, World'...")
-#     ws.send("Hello, World")
-#     print("Sent")
-#     print("Receiving...")
-#     result =  ws.recv()
-#     print("Received '%s'" % result)
-#     ws.close()
-
-# create_connect()
 
 def send_get_ads_info():
     url = "/api/machine/get_ads_info"
     # Send an HTTP GET request to a URL of your choice
     response = requests.post(hostName + url, verify=False)
 
-    if lockList[1]:
+    if getThreadStatus() == THREAD_STOPPING:
         return
+
     # Check the response status code
     if response.status_code == 200:
         responseData = response.json()   # {status : , message : , details : [{},]}
@@ -52,7 +41,7 @@ def send_get_ads_info():
         db.delete_ads()
         params = Ad(0, adData['type'], base64.b64decode(adData['content']))
         global_ads.append(params)
-        if lockList[1]:
+        if getThreadStatus() == THREAD_STOPPING:
             return
         db.insert_ads(params)
     else:
@@ -65,7 +54,7 @@ def send_get_machine_info():
     url = "/api/machine/get_machine_info"
     response = requests.post(hostName + url, verify=False)
 
-    if lockList[1]:
+    if getThreadStatus() == THREAD_STOPPING:
         return
     
     # Check the response status code
@@ -80,8 +69,8 @@ def send_get_machine_info():
     
             global_machines.append(params)
 
-            if lockList[1]:
-                break
+            if getThreadStatus() == THREAD_STOPPING:
+                return
             db.insert_machine(params)
     else:
         print(f"Request failed with status code: {response.status_code}")
@@ -91,7 +80,7 @@ def send_get_products_info():
 
     # Send an HTTP GET request to a URL of your choice
     response = requests.post(hostName + url, verify=False)
-    if lockList[1]:
+    if getThreadStatus() == THREAD_STOPPING:
         return
 
     # Check the response status code
@@ -104,7 +93,7 @@ def send_get_products_info():
             params = Product(0, item['itemno'], item['name'], base64.b64decode(item['thumbnail']), item['nicotine'], item['batterypack'],
                              item['tankvolumn'], item['price'], item['currency'], item['caution'], item['stock'])
             global_produts.append(params)
-            if lockList[1]:
+            if getThreadStatus() == THREAD_STOPPING:
                 break
             db.insert_product(params)
     else:
@@ -124,86 +113,111 @@ async def connect_to_server():
     ssl_context.verify_mode = ssl.CERT_NONE
 
     print("wss thread id", threading.get_native_id())
+
+    setThreadStatus(THREAD_RUNNING)
+    
+    cnt = 0
     
     try:
-        async with websockets.connect('wss://212.224.86.112:8443', ssl = ssl_context) as websocket:
-            print('connected')
+        websocket = await websockets.connect('wss://212.224.86.112:8443', ssl = ssl_context)
+    except:
+        pass
+    
+    while True: 
+        try:
+            if getThreadStatus() == THREAD_STOPPING:
+                break
+
+            if cnt % 50 != 0:
+                time.sleep(0.1)
+                cnt = (cnt+1) % 50
+                print('cnt', cnt)
+                continue
+                
+            cnt = (cnt+1) % 50
+            
+            # async with websockets.connect('wss://212.224.86.112:8443', ssl = ssl_context) as websocket:
+
+            if getThreadStatus() == THREAD_STOPPING:
+                break
+            
             sendData = {'action': 'MachineConnect'}
             await websocket.send(json.dumps(sendData))
+            
+            if getThreadStatus() == THREAD_STOPPING:
+                break
             
             # Receive data
             response = await websocket.recv()
             responseData = json.loads(response)
-
             print(f"Received data: {responseData}")
 
             machineConnectStatus = responseData['status']
             token = responseData['token']
-            cnt = 0
+
+            if getThreadStatus() == THREAD_STOPPING:
+                break                
 
             if machineConnectStatus == 'success':
-                while True: 
-                    if lockList[1]:
-                        break
-
-                    if cnt % 50 != 0:
-                        time.sleep(0.1)
-                        cnt = cnt+1
-                        continue
-                    
-                    cnt = cnt+1
-                    # print(f'stopConnncet: {stopConnect}')
-                    # if stopConnect:
-                    #     print('http_request_close')
-                    #     break
-
-                    statusData = {
-                        'action': "MachineSendStatus",
-                        'payload': {
-                            'serialno': "123-456-678",
-                            'temparature': "XXX",
-                            'token': token, 
-                        }
+                statusData = {
+                    'action': "MachineSendStatus",
+                    'payload': {
+                        'serialno': "123-456-678",
+                        'temparature': "XXX",
+                        'token': token, 
                     }
-                    await websocket.send(json.dumps(statusData))
-                    if (lockList[1]):
-                        break
+                }
+                await websocket.send(json.dumps(statusData))
+                if getThreadStatus() == THREAD_STOPPING:
+                    break
 
-                    statusResponse = await websocket.recv()
-                    if lockList[1]:
-                        break
+                statusResponse = await websocket.recv()
+                if getThreadStatus() == THREAD_STOPPING:
+                    break
 
-                    statusResponseData = json.loads(statusResponse)
-                    print(f'send_websockrt_every10s')
-                    machineGetStatus = statusResponseData['status']
-                    machineGetType = statusResponseData['type']
+                statusResponseData = json.loads(statusResponse)
+                print(f'send_websockrt_every10s')
+                machineGetStatus = statusResponseData['status']
+                machineGetType = statusResponseData['type']
 
-                    if lockList[1]:
-                        break
-                    
-                    if machineGetStatus == 1:
-                        lockList[0].acquire()
-                        if 'ads' in machineGetType:
-                            send_get_ads_info()
-                        if 'machine' in machineGetType:
-                            send_get_machine_info()
-                        if 'product' in machineGetType:
-                            send_get_products_info()
-                        lockList[0].release()
+                if getThreadStatus() == THREAD_STOPPING:
+                    break
                 
-            else:
+                if machineGetStatus == 1:
+                    if 'ads' in machineGetType:
+                        getDBLock(DBLOCK_ADS).acquire()
+                        try:
+                            send_get_ads_info()
+                        except:
+                            pass
+                        getDBLock(DBLOCK_ADS).release()
+                    if 'machine' in machineGetType:
+                        getDBLock(DBLOCK_MACHINE).acquire()
+                        try:
+                            send_get_machine_info()
+                        except:
+                            pass
+                        getDBLock(DBLOCK_MACHINE).release()
+                    if 'product' in machineGetType:
+                        getDBLock(DBLOCK_PRODUCT).acquire()
+                        try:
+                            send_get_products_info()
+                        except:
+                            pass
+                        getDBLock(DBLOCK_PRODUCT).release()
+            
+        except (ConnectionClosed):
+            try:
+                websocket = await websockets.connect('wss://212.224.86.112:8443', ssl = ssl_context)
+            except:
                 pass
-
-            # if stopConnect:
-            #     print('websocket_close')
-            #     await websocket.close()
+            
+    try:
+        websocket.close()
     except:
         pass
-        # global_ads = db.get_ad()
-        # global_produts = db.get_products()
-        # global_machines = db.get_machines()
-    lockList[1] = 2
+
+    setThreadStatus(THREAD_FINISHED)
 
 def close_connect():
     pass
-# asyncio.get_event_loop().run_until_complete(connect_to_server())

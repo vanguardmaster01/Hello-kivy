@@ -22,7 +22,8 @@ from model.Product import Product
 from kivy.graphics import RoundedRectangle, Color, Line
 import os
 from dotenv import load_dotenv
-from config.utils import lockList
+from config.utils import getDBLock, DBLOCK_ADS, DBLOCK_MACHINE, DBLOCK_PRODUCT
+
 load_dotenv()
 
 class ItemScreen(Screen):
@@ -30,16 +31,22 @@ class ItemScreen(Screen):
         super(ItemScreen, self).__init__(**kwargs)
         self.itemId = None
         self.timer = None
+        self.caution = None
 
     def set_item_id(self, id):
         self.itemId = id
         self.timer = Clock.schedule_interval(self.draw_page, 0.03)        
 
     def draw_page(self, dt):
-        if lockList[0].acquire(False) == False:
+        if getDBLock(DBLOCK_PRODUCT).acquire(False) == False:
             return
-        product = db.get_product(self.itemId)
-        lockList[0].release()
+
+        try:
+            product = db.get_product(self.itemId)
+        except:
+            product = None
+
+        getDBLock(DBLOCK_PRODUCT).release()
 
         if product:
             # display name
@@ -47,12 +54,10 @@ class ItemScreen(Screen):
 
             # display product (image, price, ...)
             self.draw_product_info(product)
-
-            # inputMoneyLabel = Label(text='Geld einwerfen')
-            # self.ids.input_money_button.width = inputMoneyLabel.width
-            # self.ids.input_money_button.text = inputMoneyLabel.text
-
-            self.draw_bigo(product.caution)
+            
+            self.caution = product.caution
+            self.draw_bigo()
+            # self.draw_bigo_img()
 
             self.ids.back_img.bind(on_touch_down = self.on_back_press)
             
@@ -108,11 +113,13 @@ class ItemScreen(Screen):
         self.ids.info_layout.add_widget(boxLayout)
 
     # display bigo (labels, img on the top-right )
-    def draw_bigo(self, cautionText):
+    def draw_bigo(self):
         bigoLayout = self.ids.bigo_layout
-        
+        bigoLayout.clear_widgets()
+        bigoLayout.canvas.clear()
+
         for i in range (1):
-            caution = Label(text=cautionText)
+            caution = Label(text=self.caution)
             caution.halign='left'
             caution.valign = 'middle'
             caution.color = (.1,.1,.1,.5)
@@ -125,12 +132,14 @@ class ItemScreen(Screen):
         # Create an Image widget
         img = Image(source='./img/bigo.png')
         # Calculate the position for the image (top-right corner)
-        image_x = int(os.environ.get('screenX')) - img.width - 20
-        image_y = int(os.environ.get('screenY')) / 3 - img.height / 2 -100
+        screenX = Window.width
+        screenY = Window.height
+        image_x = screenX - img.width - 20
+        image_y = screenY / 3 - img.height / 2 -100
         # Draw the image on the canvas
         with bigoLayout.canvas:
+            Color(rgba=(1,1,1,1))
             Rectangle(pos=(image_x, image_y), size=img.size, texture=img.texture)
-
 
     def on_back_press(self, instance, touch):
         if instance.collide_point(*touch.pos):
@@ -144,6 +153,13 @@ class ItemScreen(Screen):
     def on_money_button_press(self):
         print('money_button_press')
 
+    def on_resize(self):
+        if self.caution:
+            self.draw_bigo()
+
+    def kill_all_timers(self):
+        if self.timer != None:
+            self.timer.cancel()
 
 class CountNumber(GridLayout):
     def __init__(self, **kwargs):

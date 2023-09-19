@@ -38,6 +38,7 @@ class AdScreen(Screen):
                 temp_file = path + os.environ.get('adPath')
                 utils.write_to_file(ad.content, temp_file)
 
+                # videoPlayerLayout = VideoPlayerLayout('./img/ad.mp4')
                 videoPlayerLayout = VideoPlayerLayout(temp_file)
                 videoPlayerLayout.manager = self.manager
                 videoPlayerLayout.bind(on_touch_up=videoPlayerLayout.on_video_touch_up)
@@ -100,12 +101,8 @@ class VideoPlayerLayout(BoxLayout):
         super(VideoPlayerLayout, self).__init__(**kwargs)
         self.manager = None
         self.temp_file = temp_file
-
         # Create a VideoPlayer widget
-        self.player = Video(source=temp_file, state='play',
-                                  options={'eos': 'loop'})
-
-        # Add the VideoPlayer widget to the BoxLayout
+        self.player = Video(source=temp_file, state='play', options={'eos':'loop'})
         self.add_widget(self.player)
     
     def on_video_touch_up(self, video, touch):
@@ -113,4 +110,3 @@ class VideoPlayerLayout(BoxLayout):
         if video.collide_point(*touch.pos):
             self.manager.current = 'List'
             # os.remove(self.temp_file)
-

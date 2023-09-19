@@ -20,7 +20,8 @@ import asyncio
 from kivy.clock import Clock
 import threading
 import time
-from config.utils import initLock, initThreadLock, lockList
+from config.utils import initThreadLock, setThreadStatus, getThreadStatus, THREAD_INIT, THREAD_RUNNING, THREAD_STOPPING, THREAD_FINISHED
+from config.utils import initDBLock
 from kivy.config import Config
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
@@ -72,8 +73,8 @@ class MainApp(App):
         global _thread
 
         print("main thread id", threading.get_native_id())
-        initLock(threading.Lock())
-        initThreadLock(0)
+        initDBLock()
+        initThreadLock()
 
         #connect db
         db.openDatabase()
@@ -83,12 +84,9 @@ class MainApp(App):
 
         width = int(os.environ.get('screenX'))
         height = int(os.environ.get('screenY'))
+        Window.size = (width, height)
 
         db_create.create_tables()
-
-        Config.set('graphics', 'width', width)
-        Config.set('graphics', 'height', height)
-        Config.write()
        
         sm.add_widget(adScreen)
         sm.add_widget(listScreen)
@@ -101,22 +99,21 @@ class MainApp(App):
         itemScreen.bind(on_touch_down=self.touch_screen)
         
         Window.bind(on_request_close=self.on_request_close)
-
+        Window.bind(on_resize=self.on_resize)
 
         return sm
 
     # if user action, .....
     def touch_screen(self, instance, touch):
         global delta
-        delta = 0
-   
+        delta = 0  
 
     def wait_apithread_stop(self, td):  
         global _thread
         global loop
         try:
             _thread.join(0.1)
-            if lockList[1] == 2:
+            if getThreadStatus() == THREAD_FINISHED:
                 _thread.join()
                 self.stopEvent.cancel() 
                 self.stop()
@@ -128,13 +125,16 @@ class MainApp(App):
         global delta
         delta += 1
         print(f'delta:{delta}')
-        if delta > 10000:
-            sm.current = 'Ad'
+        if delta > 10:
+            listScreen.kill_all_timeser()
             listScreen.clear_widgets()
             listScreen.__init__()
+
+            itemScreen.kill_all_timers()
             itemScreen.clear_widgets()
             itemScreen.__init__()
             delta = 0
+            sm.current = 'Ad'
 
     def on_request_close(self, *args):
         print('request_close')
@@ -142,8 +142,11 @@ class MainApp(App):
         return True
     
     def wait_threadstop(self, *args):
-        lockList[1] = 1
-        self.stopEvent = Clock.schedule_interval(self.wait_apithread_stop, 0.2)
+        if getThreadStatus() != THREAD_FINISHED:
+            setThreadStatus(THREAD_STOPPING)
+            self.stopEvent = Clock.schedule_interval(self.wait_apithread_stop, 0.2)
+        else : 
+            self.stop()
 
     def textpopup(self, title='', text=''):
         box = BoxLayout(orientation='vertical')
@@ -154,6 +157,12 @@ class MainApp(App):
         popup = Popup(title=title, content=box, size_hint=(None, None), size=(300, 150), auto_dismiss = False)
         mybutton.bind(on_release=self.wait_threadstop)
         popup.open()
+
+    def on_resize(self, window, width, heigt):
+        print('main_resize')
+        listScreen.on_resize()
+        itemScreen.on_resize()
+
 
 if __name__ == '__main__':
     MainApp().run()

@@ -60,7 +60,7 @@ WindowManager:
                         pos: self.pos[0], self.pos[1] + self.height / 2
                         size: self.width, self.height / 2
                 size_hint_y: 0.15
-                padding: [root.WIDTH / 6, 0, 0, 0]
+                padding: [root.WIDTH / 8, 0, root.WIDTH / 8, 0]
                 Image:
                     id: up_image
                     source: './img/up.png'
@@ -86,7 +86,7 @@ WindowManager:
                         pos: self.pos
                         size: self.width, self.height / 2
                 size_hint_y: 0.15
-                padding: [root.WIDTH / 6, 0, 0, 0]
+                padding: [root.WIDTH / 8, 0, root.WIDTH / 8, 0]
                 Image:
                     id: down_image
                     source: './img/down.png'
@@ -146,6 +146,7 @@ WindowManager:
                             rectangle: self.x , self.y, self.width-10, self.height-30
 
                     GridLayout:
+                        size_hint_x:0.4
                         rows: 5
                         spacing: 5
                         Label:
@@ -181,6 +182,7 @@ WindowManager:
                             halign: 'left'
                             text_size: self.width, None
                     GridLayout:
+                        size_hint_x:0.6
                         rows: 5
                         spacing: 5
                         id: info_layout
@@ -224,7 +226,7 @@ WindowManager:
                     on_press:root.on_money_button_press()
             BoxLayout:
                 size_hint_x: 0.4
-                padding: [30, 0, 0, 0]
+                padding: [self.width / 5, 0, self.width / 5, 0]
                 Button:
                     id: round_button
                     canvas.before:
@@ -239,8 +241,6 @@ WindowManager:
                     color: (1,1,1,1)
                     font_size: 30
                     background_color: (1,1,1,0)
-                    size_hint_x: None
-                    size:(200, self.height)
                     on_press: root.on_buy_press()
 
         BoxLayout:
